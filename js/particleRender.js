@@ -23,6 +23,9 @@
 		// Populate a_position attribute
 		gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
 		
+		var m = state.cameraMat.elements;
+		gl.uniformMatrix4fv(prog.u_cameraMat, false, m);
+		
 		gl.clearColor(0.5, 0.5, 0.5, 0.9);
         
 		gl.enable(gl.DEPTH_TEST);
