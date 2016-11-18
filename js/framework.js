@@ -14,6 +14,9 @@ var width, height;
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);
         cameraMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
         
+		R.particleRender({
+			cameraMat: cameraMat
+		});
         // R.deferredRender({
         //     cameraMat: cameraMat,
         //     projMat: camera.projectionMatrix,
@@ -115,13 +118,17 @@ var width, height;
         controls.zoomSpeed = 1.0;
         controls.panSpeed = 2.0;
 
+		var sph = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6));
+		uploadModel(sph, function(m) {
+			R.sphereModel = m;
+		}
         resize();
 
         gl.clearColor(0.5, 0.5, 0.5, 0.5);
         gl.clearDepth(1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        R.deferredSetup();
+		
+        R.particleSetup();
 
         requestAnimationFrame(update);
     };
