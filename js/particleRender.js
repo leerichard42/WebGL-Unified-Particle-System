@@ -23,13 +23,13 @@
 		// Populate a_position attribute
 		gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
 		
-		gl.clearColor(0.5, 0.5, 0.5, 0.9);
+		gl.clearColor(0.0, 0.5, 0.5, 0.0);
         
 		gl.enable(gl.DEPTH_TEST);
         
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		gl.drawArrays(gl.POINTS, 0, R.sphereModel.elemCount);
+		gl.drawArrays(gl.POINTS, 0, 63);
 	}
 
 })();

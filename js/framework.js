@@ -119,9 +119,11 @@ var width, height;
         controls.panSpeed = 2.0;
 
 		var sph = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6));
+        scene.add(sph);
+        renderer.render(scene, camera);
 		uploadModel(sph, function(m) {
 			R.sphereModel = m;
-		}
+		});
         resize();
 
         gl.clearColor(0.5, 0.5, 0.5, 0.5);
@@ -131,6 +133,65 @@ var width, height;
         R.particleSetup();
 
         requestAnimationFrame(update);
+    };
+
+    var uploadModel = function(o, callback) {
+        for (var i = -1; i < o.children.length; i++) {
+            var c, g, idx;
+            if (i < 0) {
+                c = o;
+                if (!c.geometry) {
+                    continue;
+                }
+                g = c.geometry._bufferGeometry.attributes;
+                idx = c.geometry._bufferGeometry.index;
+            } else {
+                c = o.children[i];
+                g = c.geometry.attributes;
+                idx = c.geometry.index;
+            }
+
+            var gposition = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, gposition);
+            gl.bufferData(gl.ARRAY_BUFFER, g.position.array, gl.STATIC_DRAW);
+
+            var gnormal;
+            if (g.normal && g.normal.array) {
+                gnormal = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, gnormal);
+                gl.bufferData(gl.ARRAY_BUFFER, g.normal.array, gl.STATIC_DRAW);
+            }
+
+            var guv;
+            if (g.uv && g.uv.array) {
+                guv = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, guv);
+                gl.bufferData(gl.ARRAY_BUFFER, g.uv.array, gl.STATIC_DRAW);
+            }
+
+            if (!idx) {
+                idx = new Uint32Array(g.position.array.length / 3);
+                for (var j = 0; j < idx.length; j++) {
+                    idx[j] = j;
+                }
+            }
+
+            var gidx = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gidx);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+
+            var m = {
+                idx: gidx,
+                elemCount: idx.length,
+                position: gposition,
+                normal: gnormal,
+                uv: guv
+            };
+
+            if (callback) {
+                callback(m);
+            }
+        }
     };
 
     window.handle_load.push(init);
