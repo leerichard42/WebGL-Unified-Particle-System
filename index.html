@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CIS 565 WebGL Deferred Shading</title>
+    <meta charset="utf-8">
+    <link rel="icon" href="favicon.ico">
+
+    <script src="lib/jquery-2.1.4.min.js"></script>
+    <script src="lib/es6-promise.min.js"></script>
+
+    <script src="lib/three.js"></script>
+    <script src="lib/OrbitControls.js"></script>
+    <script src="lib/OBJLoader.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/seedrandom.min.js"></script>
+
+    <script src="lib/stats.min.js"></script>
+    <script src="lib/dat.gui.js"></script>
+
+    <script src="js/util.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/deferredSetup.js"></script>
+    <script src="js/deferredRender.js"></script>
+    <script src="js/framework.js"></script>
+    <script src="js/ui.js"></script>
+
+    <script src="lib/gl-matrix-min.js"></script>
+    <script src="lib/minimal-gltf-loader.js"></script>
+
+    <style>
+        html, body {
+            user-select: none;
+        -ms-user-select: none;
+       -moz-user-select: none;
+    -webkit-user-select: none;
+            margin: 0px;
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            background-color: #333333;
+        }
+        #debugmodewarning {
+            text-align: center;
+            font-family: sans-serif;
+            color: #ffff00;
+            position: fixed;
+            bottom: 0;
+            left: 0px;
+            height: 2em;
+            width: 100%;
+            display: none;
+        }
+        #alertcontainer {
+            font-family: sans-serif;
+            background-color: rgba(0, 0, 0, 0.6);
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            display: none;
+        }
+        #alertbox {
+            background-color: black;
+            color: white;
+            margin: auto auto;
+            padding: 1em;
+            border-radius: 1em;
+            border: 2px solid white;
+            position: relative;
+            top: 200px;
+            width: 750px;
+        }
+        #dlbutton {
+            float: right;
+            width: 6em;
+            height: 2em;
+        }
+        #dlbutton button {
+            width: 100%;
+            height: 100%;
+        }
+        #msgbox {
+            font-family: sans-serif;
+            background-color: black;
+            color: white;
+            height: 2em;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800px" height="600px"></canvas>
+    <div id="msgbox"></div>
+    <div id="debugmodewarning">
+        <strong style="font-size: 150%">DEBUG MODE!</strong>
+        (Disable before measuring performance.)
+        <div id="dlbutton">
+            <button type="button" action="" disabled onclick="downloadCanvas();">Screenshot</button>
+        </div>
+    </div>
+    <div id="alertcontainer">
+        <div id="alertbox"><pre id="alerttext"></pre></div>
+    </div>
+</body>
+</html>
