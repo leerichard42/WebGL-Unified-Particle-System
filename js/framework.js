@@ -124,6 +124,21 @@ var width, height;
 		uploadModel(sph, function(m) {
 			R.sphereModel = m;
 		});
+
+        var positions = [];
+        for (var x = 0; x < 4; x++) {
+            for (var y = 0; y < 4; y++) {
+                for (var z = 0; z < 4; z++) {
+                    positions.push(x, y, z);
+                }
+            }
+        }
+
+        var posBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        R.particles = posBuffer;
+
         resize();
 
         gl.clearColor(0.5, 0.5, 0.5, 0.5);
@@ -154,6 +169,7 @@ var width, height;
             var gposition = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, gposition);
             gl.bufferData(gl.ARRAY_BUFFER, g.position.array, gl.STATIC_DRAW);
+            console.log(g.position.array);
 
             var gnormal;
             if (g.normal && g.normal.array) {
