@@ -5,8 +5,21 @@
 	
     R.particleSetup = function() {
         loadAllShaderPrograms();
-		
-		R.positionTex = createPositionTexture();
+
+        // Create the FBO
+        R.posFBO = gl.createFramebuffer();
+
+		// Create and bind a texture to store the particle positions
+        R.positionTex = createAndBindPositionTexture(R.posFBO, gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.positions);
+
+        // Check for framebuffer errors
+        abortIfFramebufferIncomplete(R.posFBO);
+
+        // Tell the WEBGL_draw_buffers extension which FBO attachments are
+        // being used. (This extension allows for multiple render targets.)
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
 
@@ -23,8 +36,9 @@
 				var p = { prog: prog };
 
 				// Retrieve the uniform and attribute locations
-				p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
-				p.a_position  = gl.getAttribLocation(prog, 'a_position');
+                p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+                p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
+                p.a_uv  = gl.getAttribLocation(prog, 'a_uv');
 
 				// Save the object into this variable for access later
 				R.progParticle = p;
@@ -32,27 +46,19 @@
 		
     };
 
-	var createPositionTexture = function() {
-		var posTex = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, posTex);
-		
+	var createAndBindPositionTexture = function(fbo, attachment, data) {
+		var tex = gl.createTexture();
+
+        gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		
-        gl.texImage2D(
-            gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0,
-            gl.RGBA, gl.UNSIGNED_SHORT, null);
-			
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 8, 8, 0, gl.RGBA, gl.FLOAT, new Float32Array(data));
         gl.bindTexture(gl.TEXTURE_2D, null);
 
-		// Not sure about this...
-        /*gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        gl.framebufferTexture2D(
-            gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTex, 0);*/
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex, 0);
 
-        return posTex;
+        return tex;
 
 	}
 })();

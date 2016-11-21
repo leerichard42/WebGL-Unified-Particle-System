@@ -129,7 +129,7 @@ var width, height;
         for (var x = 0; x < 4; x++) {
             for (var y = 0; y < 4; y++) {
                 for (var z = 0; z < 4; z++) {
-                    positions.push(x, y, z);
+                    positions.push(x, y, z, 1.0);
                 }
             }
         }
@@ -138,6 +138,19 @@ var width, height;
         gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
         R.particles = posBuffer;
+        R.positions = positions;
+
+        var textureCoords = [];
+        // currently 8x8 position array
+        for (var i = 0; i < 64; i++) {
+            var u = i % 8 / 8;
+            var v = Math.floor(i / 8) / 8;
+            textureCoords.push(u, v);
+        }
+        var uvBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+        R.uvCoords = uvBuffer;
 
         resize();
 
