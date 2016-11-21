@@ -17,14 +17,6 @@ var width, height;
 		R.particleRender({
 			cameraMat: cameraMat
 		});
-        // R.deferredRender({
-        //     cameraMat: cameraMat,
-        //     projMat: camera.projectionMatrix,
-        //     viewMat: camera.matrixWorldInverse,
-        //     cameraPos: camera.position,
-        //     models: models
-        // });
-
     };
 
     var update = function() {
@@ -108,12 +100,12 @@ var width, height;
             1.0,            // Near plane
             100             // Far plane
         );
-        camera.position.set(-15.5, 1, -1);
+        camera.position.set(-3, 3, -3);
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.enableZoom = true;
-        controls.target.set(0, 4, 0);
+        controls.target.set(0.5, 0.5, 0.5);
         controls.rotateSpeed = 0.3;
         controls.zoomSpeed = 1.0;
         controls.panSpeed = 2.0;
@@ -129,7 +121,7 @@ var width, height;
         for (var x = 0; x < 4; x++) {
             for (var y = 0; y < 4; y++) {
                 for (var z = 0; z < 4; z++) {
-                    positions.push(x, y, z, 1.0);
+                    positions.push(x / 3.0, y / 3.0, z / 3.0, 1.0);
                 }
             }
         }
