@@ -9,5 +9,5 @@ varying vec2 v_uv;
 void main() {
     vec4 pos = texture2D(u_posTex, v_uv);
 
-	gl_FragColor = vec4(pos.xyz, 1.0);
+	gl_FragColor = vec4(pos.xyz + vec3(0.005), 1.0);
 }

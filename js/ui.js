@@ -4,7 +4,7 @@ var cfg;
     'use strict';
 
     var Cfg = function() {
-        this.pingPong = false;
+        this.pingPong = true;
         this.showTexture = false;
     };
 

@@ -18,7 +18,7 @@
         abortIfFramebufferIncomplete(R.posFboA);
         // Tell the WEBGL_draw_buffers extension which FBO attachments are
         // being used. (This extension allows for multiple render targets.)
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        //gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
 
         // Position Texture B
         R.posFboB = gl.createFramebuffer();
@@ -28,10 +28,9 @@
         R.positionTexB = createAndBindPositionTexture(R.posFboB,
             gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.positions);
         abortIfFramebufferIncomplete(R.posFboB);
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
+        //gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        R.currentPosFbo = R.posFboA;
     };
 
 
@@ -68,7 +67,6 @@
                 // Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
-                p.a_uv  = gl.getAttribLocation(prog, 'a_uv');
 
                 // Save the object into this variable for access later
                 R.progUpdate = p;

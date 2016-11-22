@@ -22,6 +22,7 @@
 	
 	var renderParticles = function(state, prog) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, canvas.width, canvas.height);
 
 		// Use the program
 		gl.useProgram(prog.prog);
@@ -45,29 +46,27 @@
 	}
 
 	var updateParticles = function(state, prog) {
-		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		// Use the program
 		gl.useProgram(prog.prog);
 
-		if (cfg.pingPong) {
-			if (R.currentPosFbo === R.posFboA) {
-				bindTextures(prog, prog.u_posTex, R.positionTexA);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, R.posFboB);
-				R.currentPosFbo = R.posFboB;
-			}
-			else {
+        if (cfg.pingPong) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.posFboB);
+            gl.viewport(0, 0, 8, 8);
+            bindTextures(prog, prog.u_posTex, R.positionTexA);
+            renderFullScreenQuad(prog);
 
-					bindTextures(prog, prog.u_posTex, R.positionTexB);
-					gl.bindFramebuffer(gl.FRAMEBUFFER, R.posFboA);
-					R.currentPosFbo = R.posFboA;
-			}
+            var tempTex = R.positionTexA;
+            R.positionTexA = R.positionTexB;
+            R.positionTexB = tempTex;
 
-			renderFullScreenQuad(prog);
+            var tempFbo = R.posFboA;
+            R.posFboA = R.posFboB;
+            R.posFboB = tempFbo;
+        }
 
-		}
 
 		if (cfg.showTexture) {
-			bindTextures(prog, prog.u_posTex, R.positionTexA);
+            gl.viewport(0, 0, 128, 128);
+            bindTextures(prog, prog.u_posTex, R.positionTexA);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			renderFullScreenQuad(prog);
 		}
@@ -82,10 +81,10 @@
 
 	var renderFullScreenQuad = (function() {
 		var positions = new Float32Array([
-			-1.0, -1.0, 0.0,
-			1.0, -1.0, 0.0,
-			-1.0,  1.0, 0.0,
-			1.0,  1.0, 0.0
+			-1.0, -1.0,
+			1.0, -1.0,
+			-1.0,  1.0,
+			1.0,  1.0
 		]);
 
 		var vbo = null;
@@ -114,7 +113,7 @@
 			// Bind the position array to the vbo
 			gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
 			gl.enableVertexAttribArray(prog.a_position);
-			gl.vertexAttribPointer(prog.a_position, 3, gl.FLOAT, gl.FALSE, 0, 0);
+			gl.vertexAttribPointer(prog.a_position, 2, gl.FLOAT, gl.FALSE, 0, 0);
 
 			// Use gl.drawArrays (or gl.drawElements) to draw your quad.
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
