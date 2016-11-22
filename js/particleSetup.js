@@ -12,8 +12,13 @@
         R.posFboA.width = 8;
         R.posFboA.height = 8;
 		// Create and bind a texture to store the particle positions
-        R.positionTexA = createAndBindPositionTexture(R.posFboA,
+        R.positionTexA = createAndBindTexture(R.posFboA,
             gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.positions);
+
+        // Create and bind particle velocities
+        R.velocityTexA = createAndBindTexture(R.posFboA,
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.velocities);
+
         // Check for framebuffer errors
         abortIfFramebufferIncomplete(R.posFboA);
         // Tell the WEBGL_draw_buffers extension which FBO attachments are
@@ -25,12 +30,15 @@
         R.posFboB.width = 8;
         R.posFboB.height = 8;
         //color attachment 0?
-        R.positionTexB = createAndBindPositionTexture(R.posFboB,
+        R.positionTexB = createAndBindTexture(R.posFboB,
             gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.positions);
+        
+        R.velocityTexB = createAndBindTexture(R.posFboB,
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.velocities);
+
         abortIfFramebufferIncomplete(R.posFboB);
         //gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL]);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
     };
 
 
@@ -75,7 +83,7 @@
 
     };
 
-	var createAndBindPositionTexture = function(fbo, attachment, data) {
+	var createAndBindTexture = function(fbo, attachment, data) {
 		var tex = gl.createTexture();
 
         gl.bindTexture(gl.TEXTURE_2D, tex);

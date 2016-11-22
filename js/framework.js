@@ -117,6 +117,7 @@ var width, height;
 			R.sphereModel = m;
 		});
 
+        // Initialize vertex positions
         var positions = [];
         for (var x = 0; x < 4; x++) {
             for (var y = 0; y < 4; y++) {
@@ -126,12 +127,21 @@ var width, height;
             }
         }
 
-        var posBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-        R.particles = posBuffer;
         R.positions = positions;
 
+        // Initialize vertex velocities
+        var velocities = [];
+        for (var x = 0; x < 4; x++) {
+            for (var y = 0; y < 4; y++) {
+                for (var z = 0; z < 4; z++) {
+                    velocities.push(-0.005, 0, 0.005);
+                }
+            }
+        } 
+
+        R.velocities = velocities;
+
+        // Initialize uv positions
         var textureCoords = [];
         // currently 8x8 position array
         for (var i = 0; i < 64; i++) {

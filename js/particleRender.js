@@ -2,7 +2,8 @@
     'use strict';
 
     R.particleRender = function(state) {
-		if (!R.progParticle) {
+		if (!R.progParticle ||
+		!R.progUpdate) {
 			console.log('waiting for programs to load...');
 			return;
 		}
@@ -51,8 +52,12 @@
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.posFboB);
             gl.viewport(0, 0, 8, 8);
-            bindTextures(prog, prog.u_posTex, R.positionTexA);
-            renderFullScreenQuad(prog);
+
+			// Program attributes and texture buffers need to be in
+			// the same indices in the following arrays
+            bindTextures(prog, [prog.u_posTex], [R.positionTexA]);
+            
+			renderFullScreenQuad(prog);
 
             var tempTex = R.positionTexA;
             R.positionTexA = R.positionTexB;
@@ -74,9 +79,12 @@
 
 	var bindTextures = function(prog, location, tex) {
 		gl.useProgram(prog.prog);
-		gl.activeTexture(gl['TEXTURE0']);
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.uniform1i(location, 0);
+
+		for (var i = 0; i < tex.length; i++) {
+			gl.activeTexture(gl['TEXTURE' + i]);
+        	gl.bindTexture(gl.TEXTURE_2D, tex[i]);
+        	gl.uniform1i(location[i], i);
+		}
 	}
 
 	var renderFullScreenQuad = (function() {

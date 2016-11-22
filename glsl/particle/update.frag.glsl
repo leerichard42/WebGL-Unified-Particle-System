@@ -3,6 +3,7 @@ precision highp float;
 precision highp int;
 
 uniform sampler2D u_posTex;
+uniform sampler2D u_velTex;
 
 varying vec2 v_uv;
 
