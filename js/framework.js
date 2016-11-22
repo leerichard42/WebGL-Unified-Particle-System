@@ -134,7 +134,7 @@ var width, height;
         for (var x = 0; x < 4; x++) {
             for (var y = 0; y < 4; y++) {
                 for (var z = 0; z < 4; z++) {
-                    velocities.push(-0.005, 0, 0.005);
+                    velocities.push(-0.005, 0.0, 0.005, 1.0);
                 }
             }
         } 

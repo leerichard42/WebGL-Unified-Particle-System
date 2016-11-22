@@ -74,6 +74,7 @@
 
                 // Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
+                p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later

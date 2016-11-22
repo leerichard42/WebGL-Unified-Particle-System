@@ -36,8 +36,7 @@
 		gl.vertexAttribPointer(prog.a_uv, 2, gl.FLOAT, gl.FALSE, 0, 0);
 
 		// Bind position texture
-		bindTextures(prog, prog.u_posTex,
-			R.currentPosFbo === R.posFboA ? R.positionTexA : R.positionTexB);
+		bindTextures(prog, prog.u_posTex, R.positionTexA);
 		
 		gl.clearColor(0.5, 0.5, 0.5, 0.9);
 		gl.enable(gl.DEPTH_TEST);
@@ -55,13 +54,18 @@
 
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
-            bindTextures(prog, [prog.u_posTex], [R.positionTexA]);
+            bindTextures(prog, [prog.u_posTex, prog.u_velTex], [R.positionTexA, R.velocityTexA]);
             
 			renderFullScreenQuad(prog);
 
+			// Ping-pong
             var tempTex = R.positionTexA;
             R.positionTexA = R.positionTexB;
             R.positionTexB = tempTex;
+
+			var tempVel = R.velocityTexA;
+			R.velocityTexA = R.velocityTexB;
+			R.velocityTexA = tempVel;
 
             var tempFbo = R.posFboA;
             R.posFboA = R.posFboB;
