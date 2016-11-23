@@ -126,7 +126,6 @@ var width, height;
                 }
             }
         }
-
         R.positions = positions;
 
         // Initialize vertex velocities
@@ -138,8 +137,18 @@ var width, height;
                 }
             }
         } 
-
         R.velocities = velocities;
+
+        // Initialize vertex forces
+        var forces = [];
+        for (var x = 0; x < 4; x++) {
+            for (var y = 0; y < 4; y++) {
+                for (var z = 0; z < 4; z++) {
+                    forces.push(0.0, 0.0, 0.0, 1.0);
+                }
+            }
+        }
+        R.forces = forces;
 
         // Initialize uv positions
         var textureCoords = [];

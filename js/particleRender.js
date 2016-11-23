@@ -10,7 +10,7 @@
 		
 		// Collision
 		// Bind collision shaders, bind position + vel textures -> write to force texture
-		
+		calculateForces(state, R.progPhysics)
 		// Render
 		// Bind render shaders, bind position texture -> vertex shader transforms particles to new positions
 		renderParticles(state, R.progParticle);
@@ -20,6 +20,41 @@
 		updateParticles(state, R.progUpdate);
     };
     
+	var calculateForces = function(state, prog) {
+		gl.useProgram(prog.prog);
+
+        if (cfg.pingPong) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.fboB);
+            gl.viewport(0, 0, 8, 8);
+
+			// Program attributes and texture buffers need to be in
+			// the same indices in the following arrays
+            bindTextures(prog, [prog.u_posTex, prog.u_velTex], [R.positionTexA, R.velocityTexA]);
+            
+			renderFullScreenQuad(prog);
+
+			// Ping-pong
+            var tempTex = R.positionTexA;
+            R.positionTexA = R.positionTexB;
+            R.positionTexB = tempTex;
+
+			var tempVel = R.velocityTexA;
+			R.velocityTexA = R.velocityTexB;
+			R.velocityTexA = tempVel;
+
+            var tempFbo = R.fboA;
+            R.fboA = R.fboB;
+            R.fboB = tempFbo;
+        }
+
+
+		if (cfg.showTexture) {
+            gl.viewport(0, 0, 128, 128);
+            bindTextures(prog, prog.u_posTex, R.positionTexA);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			renderFullScreenQuad(prog);
+		}
+	}
 	
 	var renderParticles = function(state, prog) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -49,7 +84,7 @@
 		gl.useProgram(prog.prog);
 
         if (cfg.pingPong) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, R.posFboB);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, R.fboB);
             gl.viewport(0, 0, 8, 8);
 
 			// Program attributes and texture buffers need to be in
@@ -67,9 +102,9 @@
 			R.velocityTexA = R.velocityTexB;
 			R.velocityTexA = tempVel;
 
-            var tempFbo = R.posFboA;
-            R.posFboA = R.posFboB;
-            R.posFboB = tempFbo;
+            var tempFbo = R.fboA;
+            R.fboA = R.fboB;
+            R.fboB = tempFbo;
         }
 
 
