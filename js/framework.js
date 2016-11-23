@@ -110,59 +110,6 @@ var width, height;
         controls.zoomSpeed = 1.0;
         controls.panSpeed = 2.0;
 
-		var sph = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6));
-        scene.add(sph);
-        renderer.render(scene, camera);
-		uploadModel(sph, function(m) {
-			R.sphereModel = m;
-		});
-
-        // Initialize vertex positions
-        var positions = [];
-        for (var x = 0; x < 4; x++) {
-            for (var y = 0; y < 4; y++) {
-                for (var z = 0; z < 4; z++) {
-                    positions.push(x / 3.0, y / 3.0, z / 3.0, 1.0);
-                }
-            }
-        }
-        R.positions = positions;
-
-        // Initialize vertex velocities
-        var velocities = [];
-        for (var x = 0; x < 4; x++) {
-            for (var y = 0; y < 4; y++) {
-                for (var z = 0; z < 4; z++) {
-                    velocities.push(-0.005, 0.0, 0.005, 1.0);
-                }
-            }
-        } 
-        R.velocities = velocities;
-
-        // Initialize vertex forces
-        var forces = [];
-        for (var x = 0; x < 4; x++) {
-            for (var y = 0; y < 4; y++) {
-                for (var z = 0; z < 4; z++) {
-                    forces.push(0.0, 0.0, 0.0, 1.0);
-                }
-            }
-        }
-        R.forces = forces;
-
-        // Initialize uv positions
-        var textureCoords = [];
-        // currently 8x8 position array
-        for (var i = 0; i < 64; i++) {
-            var u = i % 8 / 8;
-            var v = Math.floor(i / 8) / 8;
-            textureCoords.push(u, v);
-        }
-        var uvBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-        R.uvCoords = uvBuffer;
-
         resize();
 
         gl.clearColor(0.5, 0.5, 0.5, 0.5);
@@ -172,66 +119,6 @@ var width, height;
         R.particleSetup();
 
         requestAnimationFrame(update);
-    };
-
-    var uploadModel = function(o, callback) {
-        for (var i = -1; i < o.children.length; i++) {
-            var c, g, idx;
-            if (i < 0) {
-                c = o;
-                if (!c.geometry) {
-                    continue;
-                }
-                g = c.geometry._bufferGeometry.attributes;
-                idx = c.geometry._bufferGeometry.index;
-            } else {
-                c = o.children[i];
-                g = c.geometry.attributes;
-                idx = c.geometry.index;
-            }
-
-            var gposition = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, gposition);
-            gl.bufferData(gl.ARRAY_BUFFER, g.position.array, gl.STATIC_DRAW);
-            console.log(g.position.array);
-
-            var gnormal;
-            if (g.normal && g.normal.array) {
-                gnormal = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, gnormal);
-                gl.bufferData(gl.ARRAY_BUFFER, g.normal.array, gl.STATIC_DRAW);
-            }
-
-            var guv;
-            if (g.uv && g.uv.array) {
-                guv = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, guv);
-                gl.bufferData(gl.ARRAY_BUFFER, g.uv.array, gl.STATIC_DRAW);
-            }
-
-            if (!idx) {
-                idx = new Uint32Array(g.position.array.length / 3);
-                for (var j = 0; j < idx.length; j++) {
-                    idx[j] = j;
-                }
-            }
-
-            var gidx = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gidx);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
-
-            var m = {
-                idx: gidx,
-                elemCount: idx.length,
-                position: gposition,
-                normal: gnormal,
-                uv: guv
-            };
-
-            if (callback) {
-                callback(m);
-            }
-        }
     };
 
     window.handle_load.push(init);

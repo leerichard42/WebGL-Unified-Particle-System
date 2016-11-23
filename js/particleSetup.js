@@ -5,43 +5,86 @@
 	
     R.particleSetup = function() {
         loadAllShaderPrograms();
+        initParticleData();
+        setupBuffers('A');
+        setupBuffers('B');
+    };
 
-        // Position Texture A
-        // Create the FBO
-        R.fboA = gl.createFramebuffer();
-        R.fboA.width = 8;
-        R.fboA.height = 8;
+    var initParticleData = function() {
+        // Initialize particle positions
+        var positions = [];
+        for (var x = 0; x < 4; x++) {
+            for (var y = 0; y < 4; y++) {
+                for (var z = 0; z < 4; z++) {
+                    positions.push(x / 3.0, y / 3.0, z / 3.0, 1.0);
+                }
+            }
+        }
+        R.positions = positions;
 
-        R.positionTexA = createAndBindTexture(R.fboA,
+        // Initialize particle velocities
+        var velocities = [];
+        for (var x = 0; x < 4; x++) {
+            for (var y = 0; y < 4; y++) {
+                for (var z = 0; z < 4; z++) {
+                    velocities.push(-0.005, 0.0, 0.005, 1.0);
+                }
+            }
+        }
+        R.velocities = velocities;
+
+        // Initialize particle forces
+        var forces = [];
+        for (var x = 0; x < 4; x++) {
+            for (var y = 0; y < 4; y++) {
+                for (var z = 0; z < 4; z++) {
+                    forces.push(0.0, 0.0, 0.0, 1.0);
+                }
+            }
+        }
+        R.forces = forces;
+
+        // Initialize uv positions
+        var textureCoords = [];
+        // currently 8x8 position array
+        for (var i = 0; i < 64; i++) {
+            var u = i % 8 / 8;
+            var v = Math.floor(i / 8) / 8;
+            textureCoords.push(u, v);
+        }
+        var uvBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+        R.uvCoords = uvBuffer;
+
+        //// TODO: Initialize particle indices
+        //var indices = [];
+        //for (var i = 0; i < 64; i++) {
+        //    indices[i] = i;
+        //}
+        //var indexBuffer = gl.createBuffer();
+        //gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+        //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+        //R.indices = indexBuffer;
+    }
+
+    var setupBuffers = function(id) {
+        R["fbo" + id] = gl.createFramebuffer();
+        R["fbo" + id].width = 8;
+        R["fbo" + id].height = 8;
+
+        R["positionTex" + id] = createAndBindTexture(R["fbo" + id],
             gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.positions);
 
-        R.velocityTexA = createAndBindTexture(R.fboA,
+        R["velocityTex" + id] = createAndBindTexture(R["fbo" + id],
             gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.velocities);
-        
-        R.forcesTexA = createAndBindTexture(R.fboA,
+
+        R["forceTex" + id] = createAndBindTexture(R["fbo" + id],
             gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.forces);
 
         // Check for framebuffer errors
-        abortIfFramebufferIncomplete(R.fboA);
-
-        // Position Texture B
-        R.fboB = gl.createFramebuffer();
-        R.fboB.width = 8;
-        R.fboB.height = 8;
-
-        R.positionTexB = createAndBindTexture(R.fboB,
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.positions);
-        
-        R.velocityTexB = createAndBindTexture(R.fboB,
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.velocities);
-
-        R.forcesTexB = createAndBindTexture(R.fboB,
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.forces);
-
-        abortIfFramebufferIncomplete(R.fboB);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    };
-
+        abortIfFramebufferIncomplete(R["fbo" + id]);
+    }
 
     /**
      * Loads all of the shader programs used in the pipeline.
@@ -49,7 +92,7 @@
     var loadAllShaderPrograms = function() {
 		
 		// Load collision fragment shader
-		loadShaderProgram(gl, 'glsl/particle/physics.vert.glsl', 'glsl/particle/physics.frag.glsl',
+		loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/physics.frag.glsl',
 			function(prog) {
 				// Create an object to hold info about this shader program
 				var p = { prog: prog };
@@ -81,7 +124,7 @@
         );
 
         // Load particle update shader
-        loadShaderProgram(gl, 'glsl/particle/update.vert.glsl', 'glsl/particle/update.frag.glsl',
+        loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/update.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
                 var p = { prog: prog };

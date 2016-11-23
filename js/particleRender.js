@@ -10,7 +10,8 @@
 		
 		// Collision
 		// Bind collision shaders, bind position + vel textures -> write to force texture
-		calculateForces(state, R.progPhysics)
+		//calculateForces(state, R.progPhysics);
+
 		// Render
 		// Bind render shaders, bind position texture -> vertex shader transforms particles to new positions
 		renderParticles(state, R.progParticle);
@@ -33,27 +34,11 @@
             
 			renderFullScreenQuad(prog);
 
-			// Ping-pong
-            var tempTex = R.positionTexA;
-            R.positionTexA = R.positionTexB;
-            R.positionTexB = tempTex;
-
-			var tempVel = R.velocityTexA;
-			R.velocityTexA = R.velocityTexB;
-			R.velocityTexA = tempVel;
-
-            var tempFbo = R.fboA;
-            R.fboA = R.fboB;
-            R.fboB = tempFbo;
+			// Ping-pong textures and framebuffers
+            swap('positionTex');
+            swap('velocityTex');
+            swap('fbo');
         }
-
-
-		if (cfg.showTexture) {
-            gl.viewport(0, 0, 128, 128);
-            bindTextures(prog, prog.u_posTex, R.positionTexA);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			renderFullScreenQuad(prog);
-		}
 	}
 	
 	var renderParticles = function(state, prog) {
@@ -94,17 +79,9 @@
 			renderFullScreenQuad(prog);
 
 			// Ping-pong
-            var tempTex = R.positionTexA;
-            R.positionTexA = R.positionTexB;
-            R.positionTexB = tempTex;
-
-			var tempVel = R.velocityTexA;
-			R.velocityTexA = R.velocityTexB;
-			R.velocityTexA = tempVel;
-
-            var tempFbo = R.fboA;
-            R.fboA = R.fboB;
-            R.fboB = tempFbo;
+            swap('positionTex');
+            swap('velocityTex');
+            swap('fbo');
         }
 
 
@@ -125,6 +102,12 @@
         	gl.uniform1i(location[i], i);
 		}
 	}
+
+    var swap = function(property) {
+        var temp = R[property + 'A'];
+        R[property + 'A'] = R[property + 'B'];
+        R[property + 'B'] = temp;
+    }
 
 	var renderFullScreenQuad = (function() {
 		var positions = new Float32Array([
