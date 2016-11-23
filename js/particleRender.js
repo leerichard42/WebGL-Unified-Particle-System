@@ -51,11 +51,13 @@
 		var m = state.cameraMat.elements;
 		gl.uniformMatrix4fv(prog.u_cameraMat, false, m);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, R.uvCoords);
-		gl.enableVertexAttribArray(prog.a_uv);
-		gl.vertexAttribPointer(prog.a_uv, 2, gl.FLOAT, gl.FALSE, 0, 0);
+        gl.uniform1i(prog.u_texSideLength, R.texSideLength);
 
-		// Bind position texture
+        gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
+        gl.enableVertexAttribArray(prog.a_idx);
+        gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
+
+        // Bind position texture
 		bindTextures(prog, prog.u_posTex, R.positionTexA);
 		
 		gl.clearColor(0.5, 0.5, 0.5, 0.9);

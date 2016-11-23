@@ -11,6 +11,13 @@
     };
 
     var initParticleData = function() {
+        var exp = 6;
+        if (exp % 2 !== 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numParticles = Math.pow(2, 6); // 2^6 = 64
+        R.texSideLength = Math.sqrt(R.numParticles);
+
         // Initialize particle positions
         var positions = [];
         for (var x = 0; x < 4; x++) {
@@ -44,34 +51,19 @@
         }
         R.forces = forces;
 
-        // Initialize uv positions
-        var textureCoords = [];
-        // currently 8x8 position array
-        for (var i = 0; i < 64; i++) {
-            var u = i % 8 / 8;
-            var v = Math.floor(i / 8) / 8;
-            textureCoords.push(u, v);
+        // Initialize particle indices
+        var indices = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            indices[i] = i;
         }
-        var uvBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-        R.uvCoords = uvBuffer;
-
-        //// TODO: Initialize particle indices
-        //var indices = [];
-        //for (var i = 0; i < 64; i++) {
-        //    indices[i] = i;
-        //}
-        //var indexBuffer = gl.createBuffer();
-        //gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
-        //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
-        //R.indices = indexBuffer;
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+        R.indices = indexBuffer;
     }
 
     var setupBuffers = function(id) {
         R["fbo" + id] = gl.createFramebuffer();
-        R["fbo" + id].width = 8;
-        R["fbo" + id].height = 8;
 
         R["positionTex" + id] = createAndBindTexture(R["fbo" + id],
             gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.positions);
@@ -116,7 +108,8 @@
 				// Retrieve the uniform and attribute locations
                 p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
-                p.a_uv  = gl.getAttribLocation(prog, 'a_uv');
+                p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
+                p.a_idx  = gl.getAttribLocation(prog, 'a_idx');
 
 				// Save the object into this variable for access later
 				R.progParticle = p;
@@ -148,10 +141,10 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         if (data) {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, fbo.width, fbo.height, 0, gl.RGBA, gl.FLOAT, new Float32Array(data));
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, R.texSideLength, R.texSideLength, 0, gl.RGBA, gl.FLOAT, new Float32Array(data));
         }
         else {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, fbo.width, fbo.height, 0, gl.RGBA, gl.FLOAT, null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, R.texSideLength, R.texSideLength, 0, gl.RGBA, gl.FLOAT, null);
         }
         gl.bindTexture(gl.TEXTURE_2D, null);
 
