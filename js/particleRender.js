@@ -26,7 +26,7 @@
 
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.fboB);
-            gl.viewport(0, 0, 8, 8);
+            gl.viewport(0, 0, R.texSideLength, R.texSideLength);
 
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
@@ -64,7 +64,7 @@
 		gl.enable(gl.DEPTH_TEST);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		gl.drawArrays(gl.POINTS, 0, 64);
+		gl.drawArrays(gl.POINTS, 0, R.numParticles);
 	}
 
 	var updateParticles = function(state, prog) {
@@ -72,7 +72,7 @@
 
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.fboB);
-            gl.viewport(0, 0, 8, 8);
+            gl.viewport(0, 0, R.texSideLength, R.texSideLength);
 
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays

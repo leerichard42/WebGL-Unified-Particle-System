@@ -11,43 +11,43 @@
     };
 
     var initParticleData = function() {
-        var exp = 6;
-        if (exp % 2 !== 0) {
+        var exp = 14;
+        if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
-        R.numParticles = Math.pow(2, 6); // 2^6 = 64
+        R.numParticles = Math.pow(2, exp); // 2^6 = 64
         R.texSideLength = Math.sqrt(R.numParticles);
 
         // Initialize particle positions
         var positions = [];
-        for (var x = 0; x < 4; x++) {
-            for (var y = 0; y < 4; y++) {
-                for (var z = 0; z < 4; z++) {
-                    positions.push(x / 3.0, y / 3.0, z / 3.0, 1.0);
-                }
-            }
+        var gridBounds = {
+            min: -1,
+            max: 1
+        };
+        for (var i = 0; i < R.numParticles; i++) {
+            positions.push( Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min, 
+                            Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min, 
+                            Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min, 1.0);
         }
         R.positions = positions;
 
         // Initialize particle velocities
         var velocities = [];
-        for (var x = 0; x < 4; x++) {
-            for (var y = 0; y < 4; y++) {
-                for (var z = 0; z < 4; z++) {
-                    velocities.push(-0.005, 0.0, 0.005, 1.0);
-                }
-            }
+        var velBounds = {
+            min: -.005,
+            max: .005
+        };
+        for (var i = 0; i < R.numParticles; i++) {
+            velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 
+                            Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 
+                            Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 1.0);
         }
         R.velocities = velocities;
 
         // Initialize particle forces
         var forces = [];
-        for (var x = 0; x < 4; x++) {
-            for (var y = 0; y < 4; y++) {
-                for (var z = 0; z < 4; z++) {
-                    forces.push(0.0, 0.0, 0.0, 1.0);
-                }
-            }
+        for (var i = 0; i < R.numParticles; i++) {
+            forces.push(0.0, 0.0, 0.0, 1.0);
         }
         R.forces = forces;
 
