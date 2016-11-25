@@ -10,7 +10,7 @@
 		
 		// Collision
 		// Bind collision shaders, bind position + vel textures -> write to force texture
-		//calculateForces(state, R.progPhysics);
+		calculateForces(state, R.progPhysics);
 
 		// Render
 		// Bind render shaders, bind position texture -> vertex shader transforms particles to new positions
@@ -28,16 +28,13 @@
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.fboB);
             gl.viewport(0, 0, R.texSideLength, R.texSideLength);
 
+			gl.uniform1i(prog.u_texSideLength, R.texSideLength);
+
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
             bindTextures(prog, [prog.u_posTex, prog.u_velTex], [R.positionTexA, R.velocityTexA]);
             
 			renderFullScreenQuad(prog);
-
-			// Ping-pong textures and framebuffers
-            swap('positionTex');
-            swap('velocityTex');
-            swap('fbo');
         }
 	}
 	
@@ -74,15 +71,17 @@
             gl.bindFramebuffer(gl.FRAMEBUFFER, R.fboB);
             gl.viewport(0, 0, R.texSideLength, R.texSideLength);
 
+			gl.uniform1i(prog.u_texSideLength, R.texSideLength);
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
-            bindTextures(prog, [prog.u_posTex, prog.u_velTex], [R.positionTexA, R.velocityTexA]);
+            bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex], [R.positionTexA, R.velocityTexA, R.forceTexA]);
             
 			renderFullScreenQuad(prog);
 
 			// Ping-pong
             swap('positionTex');
             swap('velocityTex');
+			swap('forceTex');
             swap('fbo');
         }
 

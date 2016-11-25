@@ -2,6 +2,8 @@
 precision highp float;
 precision highp int;
 
+uniform int u_side;
+
 attribute vec2 a_position;
 
 varying vec2 v_uv;

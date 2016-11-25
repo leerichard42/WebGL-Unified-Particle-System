@@ -11,7 +11,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 14;
+        var exp = 8;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -76,6 +76,10 @@
 
         // Check for framebuffer errors
         abortIfFramebufferIncomplete(R["fbo" + id]);
+
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL]);
     }
 
     /**
@@ -92,6 +96,7 @@
 				// Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
+                p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
 				// Save the object into this variable for access later
@@ -125,6 +130,8 @@
                 // Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
+                p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
+                p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later

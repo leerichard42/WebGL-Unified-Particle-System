@@ -10,12 +10,16 @@ attribute float a_idx;
 
 varying vec4 v_position;
 
+vec2 getUV(int idx, int side) {
+    float v = float(idx / side) / float(side);
+    float u = float(idx - (idx / side) * side) / float(side);
+    return vec2(u, v);
+}
+
 void main() {
     int idx = int(a_idx);
 
-    float v = float(idx / u_side) / float(u_side);
-    float u = float(idx - (idx / u_side) * u_side) / float(u_side);
-    vec4 pos = texture2D(u_posTex, vec2(u, v));
+    vec4 pos = texture2D(u_posTex, getUV(idx, u_side));
 
     gl_Position = u_cameraMat * pos;
     v_position = pos;
