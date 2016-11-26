@@ -139,6 +139,24 @@
             }
         );
 
+        // Load debug shader for viewing textures
+        loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/debug.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
+                p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
+                p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
+                p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
+                p.a_position  = gl.getAttribLocation(prog, 'a_position');
+
+                // Save the object into this variable for access later
+                R.progDebug = p;
+            }
+        );
+
     };
 
 	var createAndBindTexture = function(fbo, attachment, data) {

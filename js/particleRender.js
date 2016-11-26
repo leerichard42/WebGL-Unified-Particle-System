@@ -3,7 +3,9 @@
 
     R.particleRender = function(state) {
 		if (!R.progParticle ||
-		!R.progUpdate) {
+		!R.progUpdate ||
+		!R.progPhysics ||
+		!R.progDebug) {
 			console.log('waiting for programs to load...');
 			return;
 		}
@@ -19,6 +21,17 @@
 		// Update state
 		// Bind update shaders, bind force texture -> write to velocity and position texture
 		updateParticles(state, R.progUpdate);
+
+		// Debug
+		if (cfg.showTexture) {
+			gl.useProgram(R.progDebug.prog);
+            gl.viewport(0, 0, 128 * 3, 128);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.uniform1i(R.progDebug.u_texSideLength, R.texSideLength);
+            bindTextures(R.progDebug, [R.progDebug.u_posTex, R.progDebug.u_velTex, R.progDebug.u_forceTex], 
+				[R.positionTexA, R.velocityTexA, R.forceTexA]);
+			renderFullScreenQuad(R.progDebug);
+		}
     };
     
 	var calculateForces = function(state, prog) {
@@ -84,14 +97,6 @@
 			swap('forceTex');
             swap('fbo');
         }
-
-
-		if (cfg.showTexture) {
-            gl.viewport(0, 0, 128, 128);
-            bindTextures(prog, prog.u_posTex, R.positionTexA);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			renderFullScreenQuad(prog);
-		}
 	}
 
 	var bindTextures = function(prog, location, tex) {
