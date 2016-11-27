@@ -16,10 +16,10 @@ void main() {
     if (v_uv.x > (.333)) {
         if (v_uv.x > .667) {
             vec4 force = texture2D(u_forceTex, vec2(v_uv.x * 3.0 - 2.0, v_uv.y));
-            gl_FragColor = force * 1000000.0;
+            gl_FragColor = abs(force) * 0.9;
         } else {
             vec4 vel = texture2D(u_velTex, vec2(v_uv.x * 3.0 - 1.0, v_uv.y));
-            gl_FragColor = vel * 10000.0;
+            gl_FragColor = abs(vel);
         }
     } else {
         vec4 pos = texture2D(u_posTex, vec2(v_uv.x * 3.0, v_uv.y));

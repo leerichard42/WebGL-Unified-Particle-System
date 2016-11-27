@@ -9,7 +9,7 @@
 			console.log('waiting for programs to load...');
 			return;
 		}
-		
+
 		// Collision
 		// Bind collision shaders, bind position + vel textures -> write to force texture
 		calculateForces(state, R.progPhysics);
@@ -28,12 +28,12 @@
             gl.viewport(0, 0, 128 * 3, 128);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.uniform1i(R.progDebug.u_texSideLength, R.texSideLength);
-            bindTextures(R.progDebug, [R.progDebug.u_posTex, R.progDebug.u_velTex, R.progDebug.u_forceTex], 
-				[R.positionTexA, R.velocityTexA, R.forceTexA]);
+            bindTextures(R.progDebug, [R.progDebug.u_posTex, R.progDebug.u_velTex, R.progDebug.u_forceTex],
+				[R.positionTexA, R.velocityTexA, R.forceTexB]);
 			renderFullScreenQuad(R.progDebug);
 		}
     };
-    
+
 	var calculateForces = function(state, prog) {
 		gl.useProgram(prog.prog);
 
@@ -46,18 +46,18 @@
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
             bindTextures(prog, [prog.u_posTex, prog.u_velTex], [R.positionTexA, R.velocityTexA]);
-            
+
 			renderFullScreenQuad(prog);
         }
 	}
-	
+
 	var renderParticles = function(state, prog) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, canvas.width, canvas.height);
 
 		// Use the program
 		gl.useProgram(prog.prog);
-		
+
 		var m = state.cameraMat.elements;
 		gl.uniformMatrix4fv(prog.u_cameraMat, false, m);
 
@@ -68,8 +68,10 @@
         gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
 
         // Bind position texture
-		bindTextures(prog, prog.u_posTex, R.positionTexA);
-		
+		// bindTextures(prog, prog.u_posTex, R.positionTexA);
+        bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex],
+            [R.positionTexA, R.velocityTexA, R.forceTexB]);
+
 		gl.clearColor(0.5, 0.5, 0.5, 0.9);
 		gl.enable(gl.DEPTH_TEST);
 		gl.clear(gl.COLOR_BUFFER_BIT);
@@ -88,7 +90,7 @@
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
             bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex], [R.positionTexA, R.velocityTexA, R.forceTexA]);
-            
+
 			renderFullScreenQuad(prog);
 
 			// Ping-pong

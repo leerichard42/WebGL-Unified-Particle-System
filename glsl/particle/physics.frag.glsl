@@ -17,37 +17,46 @@ vec2 getUV(int idx, int side) {
 }
 
 void main() {
-    // Spring coefficient
-    float k = 0.00001;    
-    // Damping coefficient
-    float n = 0.1;
-    // Particle diameter
-    float d = 1.0;
 
-    vec4 spring_total = vec4(0.0);
-    vec4 damping_total = vec4(0.0);
-    vec4 pos = texture2D(u_posTex, v_uv);
-    vec4 vel = texture2D(u_velTex, v_uv);
-    
+
+    // Spring coefficient
+    float k = 0.1;
+    // Damping coefficient
+    float n = 0.01;
+    // Particle diameter
+    float d = 0.5;
+
+    vec3 spring_total = vec3(0.0);
+    vec3 damping_total = vec3(0.0);
+    vec3 pos = texture2D(u_posTex, v_uv).xyz;
+    vec3 vel = texture2D(u_velTex, v_uv).xyz;
+
     // Naive loop through all particles
     // Hack because WebGL cannot compare loop index to non-constant expression
-    for (int i = 0; i < 1000000; i++) {
+    // Maximum of 1024x1024 = 1048576 for now
+    for (int i = 0; i < 64; i++) {
         if (i == u_side * u_side)
             break;
 
         vec2 uv = getUV(i, u_side);
-        if (uv == v_uv) 
-            continue;
-        
-        vec4 p_pos = texture2D(u_posTex, uv);
-        vec4 p_vel = texture2D(u_velTex, uv);
+        // if (length(uv - v_uv) < 0.01)
+        //     continue;
 
-        vec4 r = pos - p_pos;
-        if (length(r) < 1.0) {
-            spring_total = -k * (d - length(r)) * normalize(r); 
-            //damping_total = n * (vel - p_vel);
+        vec3 p_pos = texture2D(u_posTex, uv).xyz;
+        if (length(p_pos - pos) < 0.001)
+            continue;
+        vec3 p_vel = texture2D(u_velTex, uv).xyz;
+
+        vec3 rel_pos = p_pos - pos;
+        vec3 rel_vel = p_vel - vel;
+        if (length(rel_pos) < d) {
+            spring_total += -k * (d - length(rel_pos)) * normalize(rel_pos);
+            damping_total += n * rel_vel;
         }
     }
 
-	gl_FragData[2] = vec4(vec3(spring_total), 1); //force output
+    gl_FragData[2] = vec4(vec3(0.0, -9.8, 0.0) + spring_total + damping_total, 1.0); //force output
+	// gl_FragData[2] = vec4(/*vec3(0.0, -9.8, 0.0) +*/ spring_total + damping_total, 1.0); //force output
+
+
 }

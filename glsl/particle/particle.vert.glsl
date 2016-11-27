@@ -4,11 +4,15 @@ precision highp int;
 
 uniform mat4 u_cameraMat;
 uniform sampler2D u_posTex;
+uniform sampler2D u_velTex;
+uniform sampler2D u_forceTex;
 uniform int u_side;
 
 attribute float a_idx;
 
 varying vec4 v_position;
+varying vec4 v_velocity;
+varying vec4 v_force;
 
 vec2 getUV(int idx, int side) {
     float v = float(idx / side) / float(side);
@@ -19,9 +23,14 @@ vec2 getUV(int idx, int side) {
 void main() {
     int idx = int(a_idx);
 
-    vec4 pos = texture2D(u_posTex, getUV(idx, u_side));
+    vec2 uv = getUV(idx, u_side);
+    vec4 pos = texture2D(u_posTex, uv);
+    vec4 vel = texture2D(u_velTex, uv);
+    vec4 force = texture2D(u_forceTex, uv);
 
     gl_Position = u_cameraMat * pos;
     v_position = pos;
+    v_velocity = vel;
+    v_force = force;
 	gl_PointSize = 10.0;
 }

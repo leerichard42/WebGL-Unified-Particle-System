@@ -2,7 +2,7 @@
     'use strict';
 
     window.R = {};
-	
+
     R.particleSetup = function() {
         loadAllShaderPrograms();
         initParticleData();
@@ -11,7 +11,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 8;
+        var exp = 6;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -21,13 +21,13 @@
         // Initialize particle positions
         var positions = [];
         var gridBounds = {
-            min: -1,
-            max: 1
+            min: 1,
+            max: 2
         };
         for (var i = 0; i < R.numParticles; i++) {
-            positions.push( Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min, 
-                            Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min, 
-                            Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min, 1.0);
+            positions.push( Math.random() * (gridBounds.max - gridBounds.min)/* + gridBounds.min*/,
+                            Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min,
+                            Math.random() * (gridBounds.max - gridBounds.min)/* + gridBounds.min*/, 1.0);
         }
         R.positions = positions;
 
@@ -38,8 +38,8 @@
             max: .005
         };
         for (var i = 0; i < R.numParticles; i++) {
-            velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 
-                            Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 
+            velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                            Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
                             Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 1.0);
         }
         R.velocities = velocities;
@@ -86,7 +86,7 @@
      * Loads all of the shader programs used in the pipeline.
      */
     var loadAllShaderPrograms = function() {
-		
+
 		// Load collision fragment shader
 		loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/physics.frag.glsl',
 			function(prog) {
@@ -113,6 +113,8 @@
 				// Retrieve the uniform and attribute locations
                 p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
+                p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
+                p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
                 p.a_idx  = gl.getAttribLocation(prog, 'a_idx');
 
