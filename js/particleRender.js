@@ -25,8 +25,14 @@
 
 		for (var i = 0; i < state.models.length; i++) {
 			var m = state.models[i];
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    	    gl.viewport(0, 0, canvas.width, canvas.height);
+			
 			gl.useProgram(R.progAmbient.prog);
+			
 			gl.uniformMatrix4fv(R.progAmbient.u_cameraMat, false, state.cameraMat.elements);
+			bindTextures(R.progAmbient, [R.progAmbient.u_posTex], [R.positionTexA]);
+
 			readyModelForDraw(R.progAmbient, m);
 			drawReadyModel(m);
 		}

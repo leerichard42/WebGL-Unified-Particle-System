@@ -22,9 +22,9 @@ void main() {
     // Spring coefficient
     float k = 50.0;
     // Damping coefficient
-    float n = 0.5;
+    float n = 0.1;
     // Particle diameter
-    float d = 0.2;
+    float d = 0.1;
 
     vec3 spring_total = vec3(0.0);
     vec3 damping_total = vec3(0.0);
@@ -52,33 +52,6 @@ void main() {
             damping_total += n * rel_vel;
         }
     }
-    
-    /*// Friction coefficient
-    float u = 1.0;
-    vec3 force = vec3(0.0, -9.8, 0.0);
-
-    //Timestep
-    float dt = 0.01;
-
-    //Predict next position
-    vec3 newPos = pos + vel * dt;
-
-    //Boundary conditions
-    if (newPos.y < d / 2.0) {
-        vel.y = 0.0;
-        // Negate gravity and apply friction if contacting ground
-        force.y += 9.8;
-        vec3 dir = normalize(vel);
-        force += -1.0 * dir * u;
-        force.y += k * (d / 2.0 - newPos.y);
-    }
-     float bound = 0.3;
-     if (abs(newPos.x) > bound) {
-         force.x += k * (bound - abs(newPos.x)) * sign(newPos.x);
-     }
-     if (abs(newPos.z) > bound) {
-         force.z += k * (bound - abs(newPos.z)) * sign(newPos.z);
-     }*/
     
     vec3 force = spring_total + damping_total;
 

@@ -5,6 +5,7 @@ precision highp int;
 uniform vec3 u_lightCol;
 uniform vec3 u_lightPos;
 uniform float u_lightRad;
+uniform sampler2D u_posTex;
 
 varying vec2 v_uv;
 varying vec3 v_position;
@@ -20,5 +21,5 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 
 void main() {
 
-    gl_FragColor = vec4(0, 0, 1, 1);  // TODO: perform lighting calculations
+    gl_FragColor = vec4(v_normal, 1);  // TODO: perform lighting calculations
 }

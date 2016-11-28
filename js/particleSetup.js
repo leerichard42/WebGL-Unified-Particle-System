@@ -168,6 +168,7 @@
 
                 // Retrieve the uniform and attribute locations
                 p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+                p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
                 p.a_normal = gl.getAttribLocation(prog, 'a_normal');
                 p.a_uv = gl.getAttribLocation(prog, 'a_uv');
