@@ -11,7 +11,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 6;
+        var exp = 10;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -25,18 +25,19 @@
             max: 2
         };
         for (var i = 0; i < R.numParticles; i++) {
-            positions.push( Math.random() * (gridBounds.max - gridBounds.min)/* + gridBounds.min*/,
+            positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/,
                             Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min,
-                            Math.random() * (gridBounds.max - gridBounds.min)/* + gridBounds.min*/, 1.0);
+                            Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/, 1.0);
         }
         R.positions = positions;
 
         // Initialize particle velocities
         var velocities = [];
         var velBounds = {
-            min: -.005,
-            max: .005
+            min: -1.0,
+            max: 1.0
         };
+        //velocities.push(1.0, 0.0, 0.0, 1.0);
         for (var i = 0; i < R.numParticles; i++) {
             velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
                             Math.random() * (velBounds.max - velBounds.min) + velBounds.min,

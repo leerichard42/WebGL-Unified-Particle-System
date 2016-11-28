@@ -20,27 +20,28 @@ void main() {
 
 
     // Spring coefficient
-    float k = 0.1;
+    float k = 50.0;
     // Damping coefficient
-    float n = 0.01;
+    float n = 0.5;
     // Particle diameter
-    float d = 0.5;
+    float d = 0.2;
 
     vec3 spring_total = vec3(0.0);
     vec3 damping_total = vec3(0.0);
     vec3 pos = texture2D(u_posTex, v_uv).xyz;
     vec3 vel = texture2D(u_velTex, v_uv).xyz;
 
+    float dt = 0.01;
+    vec3 nextPos = pos + vel * dt;
+
     // Naive loop through all particles
     // Hack because WebGL cannot compare loop index to non-constant expression
     // Maximum of 1024x1024 = 1048576 for now
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 1048576; i++) {
         if (i == u_side * u_side)
             break;
 
         vec2 uv = getUV(i, u_side);
-        // if (length(uv - v_uv) < 0.01)
-        //     continue;
 
         vec3 p_pos = texture2D(u_posTex, uv).xyz;
         if (length(p_pos - pos) < 0.001)
@@ -55,8 +56,7 @@ void main() {
         }
     }
 
-    gl_FragData[2] = vec4(vec3(0.0, -9.8, 0.0) + spring_total + damping_total, 1.0); //force output
-	// gl_FragData[2] = vec4(/*vec3(0.0, -9.8, 0.0) +*/ spring_total + damping_total, 1.0); //force output
+    gl_FragData[2] = vec4(spring_total + damping_total, 1.0); //force output
 
 
 }
