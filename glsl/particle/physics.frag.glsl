@@ -31,9 +31,6 @@ void main() {
     vec3 pos = texture2D(u_posTex, v_uv).xyz;
     vec3 vel = texture2D(u_velTex, v_uv).xyz;
 
-    float dt = 0.01;
-    vec3 nextPos = pos + vel * dt;
-
     // Naive loop through all particles
     // Hack because WebGL cannot compare loop index to non-constant expression
     // Maximum of 1024x1024 = 1048576 for now
@@ -55,8 +52,35 @@ void main() {
             damping_total += n * rel_vel;
         }
     }
+    
+    /*// Friction coefficient
+    float u = 1.0;
+    vec3 force = vec3(0.0, -9.8, 0.0);
 
-    gl_FragData[2] = vec4(spring_total + damping_total, 1.0); //force output
+    //Timestep
+    float dt = 0.01;
 
+    //Predict next position
+    vec3 newPos = pos + vel * dt;
 
+    //Boundary conditions
+    if (newPos.y < d / 2.0) {
+        vel.y = 0.0;
+        // Negate gravity and apply friction if contacting ground
+        force.y += 9.8;
+        vec3 dir = normalize(vel);
+        force += -1.0 * dir * u;
+        force.y += k * (d / 2.0 - newPos.y);
+    }
+     float bound = 0.3;
+     if (abs(newPos.x) > bound) {
+         force.x += k * (bound - abs(newPos.x)) * sign(newPos.x);
+     }
+     if (abs(newPos.z) > bound) {
+         force.z += k * (bound - abs(newPos.z)) * sign(newPos.z);
+     }*/
+    
+    vec3 force = spring_total + damping_total;
+
+    gl_FragData[2] = vec4(force, 1.0); //force output
 }

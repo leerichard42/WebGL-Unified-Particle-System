@@ -15,7 +15,7 @@
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
-        R.numParticles = Math.pow(2, exp); // 2^6 = 64
+        R.numParticles = Math.pow(2, exp); 
         R.texSideLength = Math.sqrt(R.numParticles);
 
         // Initialize particle positions
@@ -160,6 +160,21 @@
             }
         );
 
+        // Load ambient shader for viewing models
+        loadShaderProgram(gl, 'glsl/object/ambient.vert.glsl', 'glsl/object/ambient.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+                p.a_position  = gl.getAttribLocation(prog, 'a_position');
+                p.a_normal = gl.getAttribLocation(prog, 'a_normal');
+                p.a_uv = gl.getAttribLocation(prog, 'a_uv');
+                // Save the object into this variable for access later
+                R.progAmbient = p;
+            }
+        );
     };
 
 	var createAndBindTexture = function(fbo, attachment, data) {

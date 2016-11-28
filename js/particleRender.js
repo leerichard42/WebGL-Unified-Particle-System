@@ -5,7 +5,8 @@
 		if (!R.progParticle ||
 		!R.progUpdate ||
 		!R.progPhysics ||
-		!R.progDebug) {
+		!R.progDebug ||
+		!R.progAmbient) {
 			console.log('waiting for programs to load...');
 			return;
 		}
@@ -22,6 +23,13 @@
 		// Bind update shaders, bind force texture -> write to velocity and position texture
 		updateParticles(state, R.progUpdate);
 
+		for (var i = 0; i < state.models.length; i++) {
+			var m = state.models[i];
+			gl.useProgram(R.progAmbient.prog);
+			gl.uniformMatrix4fv(R.progAmbient.u_cameraMat, false, state.cameraMat.elements);
+			readyModelForDraw(R.progAmbient, m);
+			drawReadyModel(m);
+		}
 		// Debug
 		if (cfg.showTexture) {
 			gl.useProgram(R.progDebug.prog);

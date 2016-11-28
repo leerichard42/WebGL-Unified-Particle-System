@@ -15,6 +15,7 @@ var width, height;
         cameraMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
         
 		R.particleRender({
+            models: models,
 			cameraMat: cameraMat
 		});
     };
@@ -110,6 +111,149 @@ var width, height;
         controls.zoomSpeed = 1.0;
         controls.panSpeed = 2.0;
 
+        var glTFURL = 'models/duck.gltf';
+        var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
+        glTFLoader.loadGLTF(glTFURL, function (glTF) {
+            var curScene = glTF.scenes[glTF.defaultScene];
+
+            var webGLTextures = {};
+
+            // temp var
+            var i,len;
+            var primitiveOrderID;
+
+            var mesh;
+            var primitive;
+            var vertexBuffer;
+            var indicesBuffer;
+
+
+            // textures setting
+            var textureID = 0;
+            var textureInfo;
+            var samplerInfo;
+            var target, format, internalFormat, type;   // texture info
+            var magFilter, minFilter, wrapS, wrapT;
+            var image;
+            var texture;
+
+
+            // temp for sponza
+            var colorTextureName = 'texture_color'; // for sponza
+            if (!glTF.json.textures[colorTextureName]) {
+                colorTextureName = (Object.keys(glTF.json.textures))[0];
+                console.log(colorTextureName);
+            }
+            var normalTextureName = 'texture_normal';
+
+            // textures
+            for (var tid in glTF.json.textures) {
+
+                textureInfo = glTF.json.textures[tid];
+                target = textureInfo.target || gl.TEXTURE_2D;
+                format = textureInfo.format || gl.RGBA;
+                internalFormat = textureInfo.format || gl.RGBA;
+                type = textureInfo.type || gl.UNSIGNED_BYTE;
+
+                image = glTF.images[textureInfo.source];
+
+                texture = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0 + textureID);
+                gl.bindTexture(target, texture);
+
+                switch(target) {
+                    case 3553: // gl.TEXTURE_2D
+                    gl.texImage2D(target, 0, internalFormat, format, type, image);
+                    break;
+                    // TODO for TA
+                }
+
+                // !! Sampler
+                // raw WebGL 1, no sampler object, set magfilter, wrapS, etc
+                samplerInfo = glTF.json.samplers[textureInfo.sampler];
+                minFilter = samplerInfo.minFilter || gl.NEAREST_MIPMAP_LINEAR;
+                magFilter = samplerInfo.magFilter || gl.LINEAR;
+                wrapS = samplerInfo.wrapS || gl.REPEAT;
+                wrapT = samplerInfo.wrapT || gl.REPEAT;
+                gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, minFilter);
+                gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, magFilter);
+                gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
+                gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
+                if (minFilter == gl.NEAREST_MIPMAP_NEAREST || 
+                    minFilter == gl.NEAREST_MIPMAP_LINEAR || 
+                    minFilter == gl.LINEAR_MIPMAP_NEAREST ||
+                    minFilter == gl.LINEAR_MIPMAP_LINEAR ) {
+                        gl.generateMipmap(target);
+                }
+
+
+                gl.bindTexture(target, null);
+
+                webGLTextures[tid] = {
+                    texture: texture,
+                    target: target,
+                    id: textureID
+                };
+
+                textureID++;
+            }
+
+
+            // vertex attributes
+            for (var mid in curScene.meshes) {
+                mesh = curScene.meshes[mid];
+
+                for (i = 0, len = mesh.primitives.length; i < len; ++i) {
+                    primitive = mesh.primitives[i];
+
+
+                    vertexBuffer = gl.createBuffer();
+                    indicesBuffer = gl.createBuffer();
+
+                    // initialize buffer
+                    var vertices = primitive.vertexBuffer;
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                    var indices = primitive.indices;
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+
+                    var posInfo = primitive.attributes[primitive.technique.parameters['position'].semantic];
+                    var norInfo = primitive.attributes[primitive.technique.parameters['normal'].semantic];
+                    var uvInfo;
+                    if (primitive.technique.parameters['texcoord_0']) {
+                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord_0'].semantic];
+                    } else if (primitive.technique.parameters['texcoord0']) {
+                        uvInfo = primitive.attributes[primitive.technique.parameters['texcoord0'].semantic];
+                    }
+                    
+
+                    models.push({
+                        gltf: primitive,
+
+                        idx: indicesBuffer,
+
+                        attributes: vertexBuffer,
+                        posInfo: {size: posInfo.size, type: posInfo.type, stride: posInfo.stride, offset: posInfo.offset},
+                        norInfo: {size: norInfo.size, type: norInfo.type, stride: norInfo.stride, offset: norInfo.offset},
+                        uvInfo: {size: uvInfo.size, type: uvInfo.type, stride: uvInfo.stride, offset: uvInfo.offset},
+
+                        // specific textures temp test
+                        colmap: webGLTextures[colorTextureName].texture, 
+                        normap: webGLTextures[normalTextureName] ? webGLTextures[normalTextureName].texture : null
+                    });
+
+                }
+
+            }
+
+
+            
+        });
         resize();
 
         gl.clearColor(0.5, 0.5, 0.5, 0.5);
