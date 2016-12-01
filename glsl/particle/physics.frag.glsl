@@ -17,14 +17,14 @@ vec2 getUV(int idx, int side) {
 }
 
 void main() {
-
-
     // Spring coefficient
-    float k = 50.0;
+    float k = 70.0;
     // Damping coefficient
-    float n = 0.1;
+    float n = 1.0;
     // Particle diameter
-    float d = 0.1;
+    float d = 0.15;
+    // Friction coefficient
+    float u = 1.0;
 
     vec3 spring_total = vec3(0.0);
     vec3 damping_total = vec3(0.0);
@@ -52,8 +52,35 @@ void main() {
             damping_total += n * rel_vel;
         }
     }
-    
+
     vec3 force = spring_total + damping_total;
+    force.y -= 9.8;
+
+    //Timestep
+    float dt = 0.01;
+    float bounds_k = 100.0;
+    //Predict next position
+    vec3 newPos = pos + vel * dt;
+    bool applyFriction = false;
+    //Boundary conditions
+    if (newPos.y < d / 2.0) {
+        // Negate gravity and apply friction if contacting ground
+        force.y += 9.8;
+        applyFriction = true;
+    }
+    float bound = 0.5;
+    if (abs(newPos.x) > bound) {
+        force.x += bounds_k * (bound - abs(newPos.x)) * sign(newPos.x);
+        applyFriction = true;
+    }
+    if (abs(newPos.z) > bound) {
+        force.z += bounds_k * (bound - abs(newPos.z)) * sign(newPos.z);
+        applyFriction = true;
+    }
+    vec3 dir = normalize(vel);
+    if(applyFriction && length(dir) > 0.0) {
+        force += -1.0 * dir * u;
+    }
 
     gl_FragData[2] = vec4(force, 1.0); //force output
 }

@@ -98,7 +98,7 @@ var width, height;
         camera = new THREE.PerspectiveCamera(
             45,             // Field of view
             width / height, // Aspect ratio
-            1.0,            // Near plane
+            0.1,            // Near plane
             100             // Far plane
         );
         camera.position.set(-3, 3, -3);
