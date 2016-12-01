@@ -61,6 +61,7 @@ void main() {
     //Predict next position
     vec3 newPos = pos + vel * u_dt;
 
+    float bound = 0.3;
     bool applyFriction = false;
     //Boundary conditions
     if (newPos.y < u_diameter / 2.0) {
@@ -68,7 +69,6 @@ void main() {
         force.y += 9.8;
         applyFriction = true;
     }
-    float bound = 0.5;
     if (abs(newPos.x) > bound) {
         force.x += bounds_k * (bound - abs(newPos.x)) * sign(newPos.x);
         applyFriction = true;

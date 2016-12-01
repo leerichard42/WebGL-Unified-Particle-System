@@ -7,6 +7,8 @@
         loadAllShaderPrograms();
         initParticleData();
         setupBuffers('A');
+        setupBuffers('Temp1');
+        setupBuffers('Temp2');
         setupBuffers('B');
     };
 
@@ -145,7 +147,29 @@
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
-                R.progUpdate = p;
+                R.progEuler = p;
+            }
+        );
+
+        // Load particle update shader
+        loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/rk2.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
+                p.u_velTex1 = gl.getUniformLocation(prog, 'u_velTex1');
+                p.u_forceTex1 = gl.getUniformLocation(prog, 'u_forceTex1');
+                p.u_velTex2 = gl.getUniformLocation(prog, 'u_velTex2');
+                p.u_forceTex2 = gl.getUniformLocation(prog, 'u_forceTex2');
+                p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
+                p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
+                p.u_dt = gl.getUniformLocation(prog, 'u_dt');
+                p.a_position  = gl.getAttribLocation(prog, 'a_position');
+
+                // Save the object into this variable for access later
+                R.progRK2 = p;
             }
         );
 
