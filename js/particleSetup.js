@@ -92,7 +92,7 @@
     var loadAllShaderPrograms = function() {
 
 		// Load collision fragment shader
-		loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/physics.frag.glsl',
+		loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/forces.frag.glsl',
 			function(prog) {
 				// Create an object to hold info about this shader program
 				var p = { prog: prog };
@@ -130,7 +130,7 @@
         );
 
         // Load particle update shader
-        loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/update.frag.glsl',
+        loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/euler.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
                 var p = { prog: prog };
