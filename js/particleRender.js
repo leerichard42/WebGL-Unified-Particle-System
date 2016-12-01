@@ -56,6 +56,8 @@
             gl.viewport(0, 0, R.texSideLength, R.texSideLength);
 
 			gl.uniform1i(prog.u_texSideLength, R.texSideLength);
+            gl.uniform1f(prog.u_diameter, R.particleSize);
+            gl.uniform1f(prog.u_dt, R.timeStep);
 
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
@@ -101,6 +103,9 @@
             gl.viewport(0, 0, R.texSideLength, R.texSideLength);
 
 			gl.uniform1i(prog.u_texSideLength, R.texSideLength);
+            gl.uniform1f(prog.u_diameter, R.particleSize);
+            gl.uniform1f(prog.u_dt, R.timeStep);
+
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
             bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex], [R.positionTexA, R.velocityTexA, R.forceTexA]);

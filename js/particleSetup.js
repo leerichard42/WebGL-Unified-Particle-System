@@ -61,6 +61,9 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
         R.indices = indexBuffer;
+
+        R.timeStep = 0.01;
+        R.particleSize = 0.15;
     }
 
     var setupBuffers = function(id) {
@@ -98,6 +101,8 @@
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
                 p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
+                p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
+                p.u_dt = gl.getUniformLocation(prog, 'u_dt');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
 				// Save the object into this variable for access later
@@ -135,6 +140,8 @@
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
+                p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
+                p.u_dt = gl.getUniformLocation(prog, 'u_dt');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
