@@ -7,8 +7,8 @@
         loadAllShaderPrograms();
         initParticleData();
         setupBuffers('A');
-        setupBuffers('Temp1');
-        setupBuffers('Temp2');
+        setupBuffers('RK2_A');
+        setupBuffers('RK2_B');
         setupBuffers('B');
     };
 
@@ -29,6 +29,7 @@
         for (var i = 0; i < R.numParticles; i++) {
             positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/,
                             Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min,
+                            //gridBounds.min + i / 100.0,
                             Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/, 1.0);
         }
         R.positions = positions;

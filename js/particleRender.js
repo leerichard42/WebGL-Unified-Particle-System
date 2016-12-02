@@ -14,13 +14,10 @@
         // RK2 Integration
         //pos in A, vel_1 in A
         //force_1 in temp2, vel_2 in Temp1, force_2 in A
-        calculateForces(state, R.progPhysics, 'A', 'Temp2');
-		updateEuler(state, R.progEuler, 'A', 'Temp2', 'Temp1');
-
-        calculateForces(state, R.progPhysics, 'Temp1', 'A');
-        //updateEuler(state, R.progEuler, 'Temp1', 'A', 'Temp2');
-        //rk2 average x and v
-        updateRK2(state, R.progRK2, 'A', 'A', 'Temp2', 'Temp1', 'A', 'B');
+        calculateForces(state, R.progPhysics, 'A', 'RK2_B');
+		updateEuler(state, R.progEuler, 'A', 'RK2_B', 'RK2_A');
+        calculateForces(state, R.progPhysics, 'RK2_A', 'A');
+        updateRK2(state, R.progRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
 
         // Render the particles
         renderParticles(state, R.progParticle);

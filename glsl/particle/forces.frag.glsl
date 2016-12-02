@@ -20,11 +20,11 @@ vec2 getUV(int idx, int side) {
 
 void main() {
     // Spring coefficient
-    float k = 70.0;
+    float k = 400.0;
     float bounds_k = 200.0;
 
     // Damping coefficient
-    float n = 1.0;
+    float n = 4.0;
     // Friction coefficient
     float u = 1.0;
 
@@ -61,7 +61,7 @@ void main() {
     //Predict next position
     vec3 newPos = pos + vel * u_dt;
 
-    float bound = 0.3;
+    float bound = 0.5;
     bool applyFriction = false;
     //Boundary conditions
     if (newPos.y < u_diameter / 2.0) {
