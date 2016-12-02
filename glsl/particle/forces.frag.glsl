@@ -9,6 +9,7 @@ uniform sampler2D u_velTex;
 uniform int u_side;
 uniform float u_diameter;
 uniform float u_dt;
+uniform float u_bound;
 
 varying vec2 v_uv;
 
@@ -61,7 +62,6 @@ void main() {
     //Predict next position
     vec3 newPos = pos + vel * u_dt;
 
-    float bound = 0.5;
     bool applyFriction = false;
     //Boundary conditions
     if (newPos.y < u_diameter / 2.0) {
@@ -69,12 +69,12 @@ void main() {
         force.y += 9.8;
         applyFriction = true;
     }
-    if (abs(newPos.x) > bound) {
-        force.x += bounds_k * (bound - abs(newPos.x)) * sign(newPos.x);
+    if (abs(newPos.x) > u_bound) {
+        force.x += bounds_k * (u_bound - abs(newPos.x)) * sign(newPos.x);
         applyFriction = true;
     }
-    if (abs(newPos.z) > bound) {
-        force.z += bounds_k * (bound - abs(newPos.z)) * sign(newPos.z);
+    if (abs(newPos.z) > u_bound) {
+        force.z += bounds_k * (u_bound - abs(newPos.z)) * sign(newPos.z);
         applyFriction = true;
     }
     //Apply friction if contacting the boundary

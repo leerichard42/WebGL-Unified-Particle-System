@@ -14,6 +14,9 @@
         // RK2 Integration
         //pos in A, vel_1 in A
         //force_1 in temp2, vel_2 in Temp1, force_2 in A
+
+        generateGrid();
+
         calculateForces(state, R.progPhysics, 'A', 'RK2_B');
 		updateEuler(state, R.progEuler, 'A', 'RK2_B', 'RK2_A');
         calculateForces(state, R.progPhysics, 'RK2_A', 'A');
@@ -28,7 +31,11 @@
 
         pingPong();
     };
-
+    
+    var generateGrid = function() {
+       
+    }
+    
     // Calculate forces on all the particles from collisions, gravity, and boundaries
     var calculateForces = function(state, prog, source, target) {
 		gl.useProgram(prog.prog);
@@ -40,6 +47,7 @@
 			gl.uniform1i(prog.u_texSideLength, R.texSideLength);
             gl.uniform1f(prog.u_diameter, R.particleSize);
             gl.uniform1f(prog.u_dt, R.timeStep);
+            gl.uniform1f(prog.u_bound, R.bound);
 
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays

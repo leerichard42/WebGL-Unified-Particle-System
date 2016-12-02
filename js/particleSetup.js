@@ -67,19 +67,30 @@
 
         R.timeStep = 0.01;
         R.particleSize = 0.15;
+        R.bound = .5;
     }
 
     var setupBuffers = function(id) {
         R["fbo" + id] = gl.createFramebuffer();
 
         R["positionTex" + id] = createAndBindTexture(R["fbo" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.positions);
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.texSideLength, R.positions);
 
         R["velocityTex" + id] = createAndBindTexture(R["fbo" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.velocities);
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.texSideLength, R.velocities);
 
         R["forceTex" + id] = createAndBindTexture(R["fbo" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.forces);
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.texSideLength, R.forces);
+        
+        // Calculate gridTex size
+        var numCells = Math.ceil(R.bound * 2 / R.particleSize);
+        var gridTexWidth = Math.ceil(Math.sqrt(numCells) * numCells);
+        // Find next highest power of two
+        var gridPotWidth = Math.pow(2, Math.ceil(Math.log(gridTexWidth)/Math.log(2)));
+
+        debugger;
+        R["gridTex" + id] = createAndBindTexture(R["fbo" + id],
+            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, gridPotWidth, null);
 
         // Check for framebuffer errors
         abortIfFramebufferIncomplete(R["fbo" + id]);
@@ -106,6 +117,7 @@
                 p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
                 p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
+                p.u_bound = gl.getUniformLocation(prog, 'u_bound');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
 				// Save the object into this variable for access later
@@ -210,17 +222,22 @@
         );
     };
 
-	var createAndBindTexture = function(fbo, attachment, data) {
+	var createAndBindTexture = function(fbo, attachment, sideLength, data) {
 		var tex = gl.createTexture();
 
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        
+        // These are necessary for non-pot textures https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_textures_in_WebGL#Non_power-of-two_textures
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
         if (data) {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, R.texSideLength, R.texSideLength, 0, gl.RGBA, gl.FLOAT, new Float32Array(data));
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, sideLength, sideLength, 0, gl.RGBA, gl.FLOAT, new Float32Array(data));
         }
         else {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, R.texSideLength, R.texSideLength, 0, gl.RGBA, gl.FLOAT, null);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, sideLength, sideLength, 0, gl.RGBA, gl.FLOAT, null);
         }
         gl.bindTexture(gl.TEXTURE_2D, null);
 
