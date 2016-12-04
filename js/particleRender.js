@@ -15,7 +15,7 @@
         //pos in A, vel_1 in A
         //force_1 in temp2, vel_2 in Temp1, force_2 in A
 
-        generateGrid();
+        generateGrid(state, R.progGrid, 'A');
 
         calculateForces(state, R.progPhysics, 'A', 'RK2_B');
 		updateEuler(state, R.progEuler, 'A', 'RK2_B', 'RK2_A');
@@ -32,8 +32,26 @@
         pingPong();
     };
     
-    var generateGrid = function() {
-       
+    var generateGrid = function(state, prog, target) {
+
+        gl.useProgram(prog.prog);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
+        gl.viewport(0, 0, R.gridPotWidth, R.gridPotWidth);
+
+        gl.uniform1i(prog.u_posTexSize, R.texSideLength);
+        gl.uniform1i(prog.u_gridSize, R.gridDimension);
+        gl.uniform1f(prog.u_num2DTex, R.gridTexWidth);
+        gl.uniform1f(prog.u_particleDiameter, R.particleSize);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
+        gl.enableVertexAttribArray(prog.a_idx);
+        gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
+        
+        // Bind position texture
+        bindTextures(prog, [prog.u_posTex], [R.positionTexB]);
+        
+        gl.drawArrays(gl.POINTS, 0, R.numParticles);
     }
     
     // Calculate forces on all the particles from collisions, gravity, and boundaries
@@ -169,11 +187,11 @@
         // Debug
         if (cfg.showTexture) {
             gl.useProgram(R.progDebug.prog);
-            gl.viewport(0, 0, 128 * 3, 128);
+            gl.viewport(0, 0, 128 * 4, 128);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.uniform1i(R.progDebug.u_texSideLength, R.texSideLength);
-            bindTextures(R.progDebug, [R.progDebug.u_posTex, R.progDebug.u_velTex, R.progDebug.u_forceTex],
-                [R.positionTexA, R.velocityTexA, R.forceTexTemp]);
+            bindTextures(R.progDebug, [R.progDebug.u_posTex, R.progDebug.u_velTex, R.progDebug.u_forceTex, R.progDebug.u_gridTex],
+                [R.positionTexA, R.velocityTexA, R.forceTexA, R.gridTexA]);
             renderFullScreenQuad(R.progDebug);
         }
     }
@@ -221,5 +239,6 @@
 			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		};
 	})();
+    
 
 })();
