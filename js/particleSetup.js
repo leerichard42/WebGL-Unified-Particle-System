@@ -100,13 +100,19 @@
         
         // Calculate gridTex size
         var numCells = Math.ceil(R.bound * 2 / R.particleSize);
-        var gridTexWidth = Math.ceil(Math.sqrt(numCells) * numCells);
+        R.gridTexWidth = Math.ceil(Math.sqrt(numCells) * numCells);
         // Find next highest power of two
-        var gridPotWidth = Math.pow(2, Math.ceil(Math.log(gridTexWidth)/Math.log(2)));
+        R.gridTexPotWidth = Math.pow(2, Math.ceil(Math.log(R.gridTexWidth)/Math.log(2)));
+        R.gridDimension = numCells;
+        
+        // Initialize grid values to 0
+        var gridVals = [];
+        for (var i = 0; i < Math.pow(R.gridTexPotWidth, 2.); i++) {
+            gridVals.push(0.0, 0.0, 0.0, 1.0);
+        }
 
-        debugger;
         R["gridTex" + id] = createAndBindTexture(R["fbo" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, gridPotWidth, null);
+            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.gridTexPotWidth, gridVals);
 
         // Check for framebuffer errors
         abortIfFramebufferIncomplete(R["fbo" + id]);
@@ -215,6 +221,7 @@
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
+                p.u_gridTex = gl.getUniformLocation(prog, 'u_gridTex');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
@@ -236,6 +243,26 @@
                 p.a_uv = gl.getAttribLocation(prog, 'a_uv');
                 // Save the object into this variable for access later
                 R.progAmbient = p;
+            }
+        );
+
+        // Load ambient shader for grid generation
+        loadShaderProgram(gl, 'glsl/grid.vert.glsl', 'glsl/grid.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
+                p.u_posTexSize = gl.getUniformLocation(prog, 'u_posTexSize');
+                p.u_gridSize = gl.getUniformLocation(prog, 'u_gridSize');
+                p.u_gridTexSize = gl.getUniformLocation(prog, 'u_texSize');
+                p.u_num2DTex = gl.getUniformLocation(prog, 'u_num2DTex'); // Should probably be renamed
+                p.u_particleDiameter = gl.getUniformLocation(prog, 'u_particleDiameter');
+                p.a_idx = gl.getAttribLocation(prog, 'a_idx');
+
+                // Save the object into this variable for access later
+                R.progGrid = p;
             }
         );
     };
