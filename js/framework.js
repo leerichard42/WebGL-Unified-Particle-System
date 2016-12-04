@@ -95,13 +95,16 @@ var width, height;
 
         width = canvas.width;
         height = canvas.height;
+        var fovy = 45;
         camera = new THREE.PerspectiveCamera(
-            45,             // Field of view
+            fovy,             // Field of view
             width / height, // Aspect ratio
             0.1,            // Near plane
             100             // Far plane
         );
         camera.position.set(-3, 3, -3);
+        R.nearPlaneHeight = height / (2*Math.tan(0.5*fovy*Math.PI/180.0));
+        //console.log(nearPlaneHeight);
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;

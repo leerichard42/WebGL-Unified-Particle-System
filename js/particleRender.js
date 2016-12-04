@@ -101,6 +101,11 @@
 
     var renderParticles = function(state, prog) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        //gl.clearColor(0.5, 0.5, 0.5, 0.9);
+        //gl.enable(gl.DEPTH_TEST);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
         gl.viewport(0, 0, canvas.width, canvas.height);
 
         // Use the program
@@ -110,6 +115,8 @@
         gl.uniformMatrix4fv(prog.u_cameraMat, false, m);
 
         gl.uniform1i(prog.u_texSideLength, R.texSideLength);
+        gl.uniform1f(prog.u_diameter, R.particleSize);
+        gl.uniform1f(prog.u_nearPlaneHeight, R.nearPlaneHeight);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
         gl.enableVertexAttribArray(prog.a_idx);
@@ -118,10 +125,6 @@
         // Bind position texture
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex],
             [R.positionTexA, R.velocityTexA, R.forceTexTemp]);
-
-        gl.clearColor(0.5, 0.5, 0.5, 0.9);
-        gl.enable(gl.DEPTH_TEST);
-        gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.drawArrays(gl.POINTS, 0, R.numParticles);
     }

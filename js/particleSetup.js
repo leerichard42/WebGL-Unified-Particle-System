@@ -6,6 +6,7 @@
     R.particleSetup = function() {
         loadAllShaderPrograms();
         initParticleData();
+        initRender();
         setupBuffers('A');
         setupBuffers('RK2_A');
         setupBuffers('RK2_B');
@@ -68,6 +69,21 @@
         R.timeStep = 0.01;
         R.particleSize = 0.15;
         R.bound = .5;
+    }
+
+    var initRender = function() {
+        //gl.clearColor(0.9,0.9,0.9, 1.0);
+        //gl.clearDepth(100.0);
+        //gl.disable(gl.DEPTH_TEST);
+        //gl.depthFunc(gl.LESS);
+        //gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+        gl.clearColor(0.5, 0.5, 0.5, 0.9);
+
+        //gl.clearDepth(100.0);
+        //gl.disable(gl.DEPTH_TEST);
+        //gl.depthFunc(gl.LESS);
+        //gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+        //gl.enable(gl.DEPTH_TEST);
     }
 
     var setupBuffers = function(id) {
@@ -137,6 +153,8 @@
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_texSideLength = gl.getUniformLocation(prog, 'u_side');
+                p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
+                p.u_nearPlaneHeight = gl.getUniformLocation(prog, 'u_nearPlaneHeight');
                 p.a_idx  = gl.getAttribLocation(prog, 'a_idx');
 
 				// Save the object into this variable for access later

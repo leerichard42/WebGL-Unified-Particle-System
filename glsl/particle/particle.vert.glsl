@@ -7,6 +7,8 @@ uniform sampler2D u_posTex;
 uniform sampler2D u_velTex;
 uniform sampler2D u_forceTex;
 uniform int u_side;
+uniform float u_diameter;
+uniform float u_nearPlaneHeight;
 
 attribute float a_idx;
 
@@ -28,9 +30,9 @@ void main() {
     vec4 vel = texture2D(u_velTex, uv);
     vec4 force = texture2D(u_forceTex, uv);
 
-    gl_Position = u_cameraMat * pos;
     v_position = pos;
     v_velocity = vel;
     v_force = force;
-	gl_PointSize = 10.0;
+    gl_Position = u_cameraMat * pos;
+	gl_PointSize = (u_nearPlaneHeight * u_diameter) / gl_Position.w;
 }
