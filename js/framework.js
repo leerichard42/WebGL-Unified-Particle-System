@@ -16,7 +16,8 @@ var width, height;
         
 		R.particleRender({
             models: models,
-			cameraMat: cameraMat
+			cameraMat: cameraMat,
+            camera: camera
 		});
     };
 
@@ -45,7 +46,8 @@ var width, height;
             'OES_texture_float',
             'OES_texture_float_linear',
             'WEBGL_depth_texture',
-            'WEBGL_draw_buffers'
+            'WEBGL_draw_buffers',
+            'EXT_frag_depth'
         ];
         for (var i = 0; i < reqd.length; i++) {
             var e = reqd[i];
@@ -57,6 +59,7 @@ var width, height;
         gl.getExtension('OES_texture_float');
         gl.getExtension('OES_texture_float_linear');
         gl.getExtension('WEBGL_depth_texture');
+        gl.getExtension('EXT_frag_depth');
 
         gl_draw_buffers = gl.getExtension('WEBGL_draw_buffers');
         var maxdb = gl.getParameter(gl_draw_buffers.MAX_DRAW_BUFFERS_WEBGL);

@@ -12,9 +12,10 @@ uniform float u_nearPlaneHeight;
 
 attribute float a_idx;
 
-varying vec4 v_position;
-varying vec4 v_velocity;
-varying vec4 v_force;
+//varying vec4 v_position;
+//varying vec4 v_velocity;
+//varying vec4 v_force;
+varying vec3 v_eyePos;
 
 vec2 getUV(int idx, int side) {
     float v = float(idx / side) / float(side);
@@ -30,9 +31,10 @@ void main() {
     vec4 vel = texture2D(u_velTex, uv);
     vec4 force = texture2D(u_forceTex, uv);
 
-    v_position = pos;
-    v_velocity = vel;
-    v_force = force;
+//    v_position = pos;
+//    v_velocity = vel;
+//    v_force = force;
+    v_eyePos = (u_cameraMat * pos).xyz;
     gl_Position = u_cameraMat * pos;
 	gl_PointSize = (u_nearPlaneHeight * u_diameter) / gl_Position.w;
 }

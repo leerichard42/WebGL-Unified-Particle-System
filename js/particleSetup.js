@@ -81,9 +81,9 @@
 
         //gl.clearDepth(100.0);
         //gl.disable(gl.DEPTH_TEST);
-        //gl.depthFunc(gl.LESS);
-        //gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
-        //gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LESS);
+        gl.enable(gl.DEPTH_TEST);
+        //gl.enable(gl.ALPHA_TEST);
     }
 
     var setupBuffers = function(id) {

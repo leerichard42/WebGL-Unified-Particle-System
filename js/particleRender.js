@@ -122,6 +122,9 @@
         //gl.clearColor(0.5, 0.5, 0.5, 0.9);
         //gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+        //gl.enable(gl.BLEND);
         //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -129,8 +132,7 @@
         // Use the program
         gl.useProgram(prog.prog);
 
-        var m = state.cameraMat.elements;
-        gl.uniformMatrix4fv(prog.u_cameraMat, false, m);
+        gl.uniformMatrix4fv(prog.u_cameraMat, false, state.cameraMat.elements);
 
         gl.uniform1i(prog.u_texSideLength, R.texSideLength);
         gl.uniform1f(prog.u_diameter, R.particleSize);
@@ -145,6 +147,8 @@
             [R.positionTexA, R.velocityTexA, R.forceTexTemp]);
 
         gl.drawArrays(gl.POINTS, 0, R.numParticles);
+
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     }
 
     var bindTextures = function(prog, location, tex) {
