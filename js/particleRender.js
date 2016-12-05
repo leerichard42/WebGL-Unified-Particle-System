@@ -15,7 +15,7 @@
         //pos in A, vel_1 in A
         //force_1 in temp2, vel_2 in Temp1, force_2 in A
 
-        generateGrid(state, R.progGrid, 'A');
+        //generateGrid(state, R.progGrid, 'A');
 
         calculateForces(state, R.progPhysics, 'A', 'RK2_B');
 		updateEuler(state, R.progEuler, 'A', 'RK2_B', 'RK2_A');
@@ -28,28 +28,28 @@
         drawModels(state);
 
         drawDebug();
+        generateGrid(state, R.progGrid, 'A');
 
         pingPong();
     };
     
     var generateGrid = function(state, prog, target) {
-
         gl.useProgram(prog.prog);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
-        gl.viewport(0, 0, R.gridPotWidth, R.gridPotWidth);
-
+        gl.viewport(0, 0, R.gridTexPotWidth, R.gridTexPotWidth);
+        
+        // Bind position texture
+        bindTextures(prog, [prog.u_posTex], [R.positionTexB]);
+        
         gl.uniform1i(prog.u_posTexSize, R.texSideLength);
         gl.uniform1i(prog.u_gridSize, R.gridDimension);
-        gl.uniform1f(prog.u_num2DTex, R.gridTexWidth);
+        gl.uniform1i(prog.u_gridTexInnerLength, R.gridTexWidth);
         gl.uniform1f(prog.u_particleDiameter, R.particleSize);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
         gl.enableVertexAttribArray(prog.a_idx);
         gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
-        
-        // Bind position texture
-        bindTextures(prog, [prog.u_posTex], [R.positionTexB]);
         
         gl.drawArrays(gl.POINTS, 0, R.numParticles);
     }
@@ -213,7 +213,7 @@
 
 		var vbo = null;
 
-		var init = function() {
+        var init = function() {
 			// Create a new buffer with gl.createBuffer, and save it as vbo.
 			vbo = gl.createBuffer();
 

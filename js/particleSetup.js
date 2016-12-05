@@ -97,7 +97,7 @@
 
         R["forceTex" + id] = createAndBindTexture(R["fbo" + id],
             gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.texSideLength, R.forces);
-        
+
         // Calculate gridTex size
         var numCells = Math.ceil(R.bound * 2 / R.particleSize);
         R.gridTexWidth = Math.ceil(Math.sqrt(numCells) * numCells);
@@ -119,7 +119,8 @@
 
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL]);
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL]);
     }
 
     /**
@@ -257,7 +258,7 @@
                 p.u_posTexSize = gl.getUniformLocation(prog, 'u_posTexSize');
                 p.u_gridSize = gl.getUniformLocation(prog, 'u_gridSize');
                 p.u_gridTexSize = gl.getUniformLocation(prog, 'u_texSize');
-                p.u_num2DTex = gl.getUniformLocation(prog, 'u_num2DTex'); // Should probably be renamed
+                p.u_gridTexInnerLength = gl.getUniformLocation(prog, 'u_gridTexInnerLength'); // Should probably be renamed
                 p.u_particleDiameter = gl.getUniformLocation(prog, 'u_particleDiameter');
                 p.a_idx = gl.getAttribLocation(prog, 'a_idx');
 
