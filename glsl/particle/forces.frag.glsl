@@ -6,7 +6,7 @@ precision highp int;
 
 uniform sampler2D u_posTex;
 uniform sampler2D u_velTex;
-uniform int u_side;
+uniform int u_particleSide;
 uniform float u_diameter;
 uniform float u_dt;
 uniform float u_bound;
@@ -38,10 +38,10 @@ void main() {
     // Hack because WebGL cannot compare loop index to non-constant expression
     // Maximum of 1024x1024 = 1048576 for now
     for (int i = 0; i < 1048576; i++) {
-        if (i == u_side * u_side)
+        if (i == u_particleSide * u_particleSide)
             break;
 
-        vec2 uv = getUV(i, u_side);
+        vec2 uv = getUV(i, u_particleSide);
 
         vec3 p_pos = texture2D(u_posTex, uv).xyz;
         if (length(p_pos - pos) < 0.001)

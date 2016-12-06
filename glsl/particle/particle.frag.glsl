@@ -6,9 +6,6 @@ precision highp int;
 
 uniform mat4 u_cameraMat;
 uniform float u_diameter;
-//varying vec4 v_position;
-//varying vec4 v_velocity;
-//varying vec4 v_force;
 varying vec3 v_eyePos;
 
 void main() {
@@ -21,8 +18,6 @@ void main() {
     // The 15.0 is a hacky constant - it should be normal * radius
     // But was unsure about how to translate the radius value from world to eye space
     vec4 pixelPos = vec4(v_eyePos + normal * u_diameter / 15.0, 1.0);
-
-//    gl_FragData[0] = vec4(1.0 - (normal.z * 0.5 + 1.0), 0, 0, 1);
 
     vec3 diffuse = 0.1 + max(0.0, dot(normal, vec3(1.0, -1.0, -1.0))) * vec3(0.0, 0.5, 0.7);
     gl_FragData[0] = vec4(diffuse, 1);

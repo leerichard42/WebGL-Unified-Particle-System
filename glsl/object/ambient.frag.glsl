@@ -1,4 +1,6 @@
 #version 100
+#extension GL_EXT_frag_depth : enable
+
 precision highp float;
 precision highp int;
 
@@ -22,4 +24,5 @@ vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
 void main() {
 
     gl_FragColor = vec4(v_normal, 1);  // TODO: perform lighting calculations
+    gl_FragDepthEXT  =  v_position.z * gl_FragCoord.w;
 }

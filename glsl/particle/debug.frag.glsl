@@ -8,7 +8,6 @@ uniform sampler2D u_posTex;
 uniform sampler2D u_velTex;
 uniform sampler2D u_forceTex;
 uniform sampler2D u_gridTex;
-uniform int u_side;
 
 varying vec2 v_uv;
 

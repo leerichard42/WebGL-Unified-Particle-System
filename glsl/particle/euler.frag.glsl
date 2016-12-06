@@ -19,21 +19,6 @@ void main() {
 
     //Check boundary conditions
     vec3 newPos = pos + vel * u_dt;
-//    if (newPos.y < u_diameter / 2.0) {
-//        newPos.y = u_diameter / 2.0;
-//        vel.y = 0.0;
-//    }
-
-    // Unable to get decent boundary behavior on the sides for now
-//    float bound = 0.5;
-//    if (abs(newPos.x) > bound) {
-//        newPos.x = bound * sign(newPos.x);
-//        vel.x *= -0.1;
-//    }
-//    if (abs(newPos.z) > bound) {
-//        newPos.z = bound * sign(newPos.z);
-//        vel.z *= -0.1;
-//    }
 
     //Update velocity
     vec3 newVel = vel + force * u_dt;

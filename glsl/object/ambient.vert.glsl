@@ -14,12 +14,13 @@ varying vec3 v_normal;
 varying vec2 v_uv;
 
 void main() {
-    float scale = .2;
+    float scale = 0.2;
     vec4 texel = texture2DLod(u_posTex, vec2(0, 0), 0.0);
-    vec4 new_pos = scale * vec4(a_position, 1) + texel;
+    vec4 new_pos = vec4(scale * a_position + texel.xyz, 1);
 
     gl_Position = u_cameraMat * new_pos;
-    v_position = a_position;
+    v_position = gl_Position.xyz;
+//    v_position = a_position;
     v_normal = a_normal;
     v_uv = a_uv;
 }

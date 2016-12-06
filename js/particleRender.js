@@ -40,9 +40,9 @@
         gl.viewport(0, 0, R.gridTexPotWidth, R.gridTexPotWidth);
         
         // Bind position texture
-        bindTextures(prog, [prog.u_posTex], [R.positionTexB]);
+        bindTextures(prog, [prog.u_posTex], [R.particlePosTexB]);
         
-        gl.uniform1i(prog.u_posTexSize, R.texSideLength);
+        gl.uniform1i(prog.u_posTexSize, R.particleSideLength);
         gl.uniform1i(prog.u_gridSize, R.gridDimension);
         gl.uniform1i(prog.u_gridTexInnerLength, R.gridTexWidth);
         gl.uniform1f(prog.u_particleDiameter, R.particleSize);
@@ -60,16 +60,16 @@
 
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
-            gl.viewport(0, 0, R.texSideLength, R.texSideLength);
+            gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
-			gl.uniform1i(prog.u_texSideLength, R.texSideLength);
+			gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
             gl.uniform1f(prog.u_diameter, R.particleSize);
             gl.uniform1f(prog.u_dt, R.timeStep);
             gl.uniform1f(prog.u_bound, R.bound);
 
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
-            bindTextures(prog, [prog.u_posTex, prog.u_velTex], [R["positionTex" + source], R["velocityTex" + source]]);
+            bindTextures(prog, [prog.u_posTex, prog.u_velTex], [R["particlePosTex" + source], R["particleVelTex" + source]]);
 
 			renderFullScreenQuad(prog);
         }
@@ -81,16 +81,16 @@
 
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
-            gl.viewport(0, 0, R.texSideLength, R.texSideLength);
+            gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
-			gl.uniform1i(prog.u_texSideLength, R.texSideLength);
+			gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
             gl.uniform1f(prog.u_diameter, R.particleSize);
             gl.uniform1f(prog.u_dt, R.timeStep);
 
 			// Program attributes and texture buffers need to be in
 			// the same indices in the following arrays
             bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex],
-                [R["positionTex" + stateSource], R["velocityTex" + stateSource], R["forceTex" + forceSource]]);
+                [R["particlePosTex" + stateSource], R["particleVelTex" + stateSource], R["forceTex" + forceSource]]);
 
 			renderFullScreenQuad(prog);
         }
@@ -102,16 +102,16 @@
 
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
-            gl.viewport(0, 0, R.texSideLength, R.texSideLength);
+            gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
-            gl.uniform1i(prog.u_texSideLength, R.texSideLength);
+            gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
             gl.uniform1f(prog.u_dt, R.timeStep);
 
             // Program attributes and texture buffers need to be in
             // the same indices in the following arrays
             bindTextures(prog, [prog.u_posTex, prog.u_velTex1, prog.u_forceTex1, prog.u_velTex2, prog.u_forceTex2],
-                [R["positionTex" + pos], R["velocityTex" + vel_1], R["forceTex" + force_1],
-                    R["velocityTex" + vel_2], R["forceTex" + force_2]]);
+                [R["particlePosTex" + pos], R["particleVelTex" + vel_1], R["forceTex" + force_1],
+                    R["particleVelTex" + vel_2], R["forceTex" + force_2]]);
 
             renderFullScreenQuad(prog);
         }
@@ -119,13 +119,7 @@
 
     var renderParticles = function(state, prog) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        //gl.clearColor(0.5, 0.5, 0.5, 0.9);
-        //gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-        //gl.enable(gl.BLEND);
-        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.viewport(0, 0, canvas.width, canvas.height);
 
@@ -134,7 +128,7 @@
 
         gl.uniformMatrix4fv(prog.u_cameraMat, false, state.cameraMat.elements);
 
-        gl.uniform1i(prog.u_texSideLength, R.texSideLength);
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
         gl.uniform1f(prog.u_diameter, R.particleSize);
         gl.uniform1f(prog.u_nearPlaneHeight, R.nearPlaneHeight);
 
@@ -144,11 +138,9 @@
 
         // Bind position texture
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex],
-            [R.positionTexA, R.velocityTexA, R.forceTexTemp]);
+            [R.particlePosTexA, R.particleVelTexA, R.forceTexTemp]);
 
         gl.drawArrays(gl.POINTS, 0, R.numParticles);
-
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     }
 
     var bindTextures = function(prog, location, tex) {
@@ -168,8 +160,8 @@
     }
 
     var pingPong = function() {
-        swap('positionTex');
-        swap('velocityTex');
+        swap('particlePosTex');
+        swap('particleVelTex');
         swap('forceTex');
         swap('fbo');
     }
@@ -183,7 +175,7 @@
             gl.useProgram(R.progAmbient.prog);
 
             gl.uniformMatrix4fv(R.progAmbient.u_cameraMat, false, state.cameraMat.elements);
-            bindTextures(R.progAmbient, [R.progAmbient.u_posTex], [R.positionTexA]);
+            bindTextures(R.progAmbient, [R.progAmbient.u_posTex], [R.particlePosTexA]);
 
             readyModelForDraw(R.progAmbient, m);
             drawReadyModel(m);
@@ -196,9 +188,9 @@
             gl.useProgram(R.progDebug.prog);
             gl.viewport(0, 0, 128 * 4, 128);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            gl.uniform1i(R.progDebug.u_texSideLength, R.texSideLength);
+            gl.uniform1i(R.progDebug.u_particleSideLength, R.particleSideLength);
             bindTextures(R.progDebug, [R.progDebug.u_posTex, R.progDebug.u_velTex, R.progDebug.u_forceTex, R.progDebug.u_gridTex],
-                [R.positionTexA, R.velocityTexA, R.forceTexA, R.gridTexA]);
+                [R.particlePosTexA, R.particleVelTexA, R.forceTexA, R.gridTexA]);
             renderFullScreenQuad(R.progDebug);
         }
     }
