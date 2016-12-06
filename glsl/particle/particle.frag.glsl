@@ -6,7 +6,10 @@ precision highp int;
 
 uniform mat4 u_cameraMat;
 uniform float u_diameter;
+uniform sampler2D u_relPosTex;
+
 varying vec3 v_eyePos;
+varying vec2 v_uv;
 
 void main() {
     vec2 uv = 2.0 * gl_PointCoord - 1.0;
@@ -19,7 +22,12 @@ void main() {
     // But was unsure about how to translate the radius value from world to eye space
     vec4 pixelPos = vec4(v_eyePos + normal * u_diameter / 15.0, 1.0);
 
-    vec3 diffuse = 0.1 + max(0.0, dot(normal, vec3(1.0, -1.0, -1.0))) * vec3(0.0, 0.5, 0.7);
+    vec4 relPos = texture2D(u_relPosTex, v_uv);
+    vec3 color = vec3(0.0, 0.5, 0.7);
+    if (relPos.w > -1.0) {
+        color = vec3(0.3, 0.6, 0.0);
+    }
+    vec3 diffuse = 0.1 + max(0.0, dot(normal, vec3(1.0, -1.0, -1.0))) * color;
     gl_FragData[0] = vec4(diffuse, 1);
 
     gl_FragDepthEXT  =  pixelPos.z * gl_FragCoord.w;
