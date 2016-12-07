@@ -149,7 +149,7 @@
 
         // Can't attach different dimension texture to the bodyFBO
         R["relativePosTex" + id] = createAndBindTexture(R["fbo" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.particleSideLength, R.relativePositions);
+            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.particleSideLength, R.particleSideLength, R.relativePositions);
 
         R["bodyFBO" + id] = gl.createFramebuffer();
         // Rigid Body Data
@@ -165,12 +165,12 @@
         R["angularVelTex" + id] = createAndBindTexture(R["bodyFBO" + id],
             gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.bodySideLength, R.bodySideLength, R.angularVelocities);
 
-        //R["relativePosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-        //    gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL, R.particleSideLength, R.relativePositions);
+        // R["relativePosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
+        //    gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL, R.particleSideLength, R.particleSideLength, R.relativePositions);
 
         R["gridFBO" + id] = gl.createFramebuffer();
         R.gridInfo = {};
-        debugger;
+
         // Calculate gridTex size
         R.gridInfo.numCellsPerSide = Math.ceil(R.bound * 2 / R.particleSize);
 
@@ -185,7 +185,7 @@
         for (var i = 0; i < Math.pow(R.gridInfo.gridTexWidth, 2.); i++) {
            gridVals.push(0.0, 0.0, 0.0, 1.0);
         }
-
+        debugger;
         R["gridTex" + id] = createAndBindTexture(R["gridFBO" + id],
            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth, gridVals);
 
@@ -194,7 +194,8 @@
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL]);
+            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL]);
 
         abortIfFramebufferIncomplete(R["bodyFBO" + id]);
         abortIfFramebufferIncomplete(R["gridFBO" + id]);

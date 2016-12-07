@@ -6,7 +6,8 @@
 		!R.progEuler ||
 		!R.progPhysics ||
 		!R.progDebug ||
-		!R.progAmbient) {
+		!R.progAmbient ||
+        !R.progSetup) {
 			console.log('waiting for programs to load...');
 			return;
 		}
