@@ -15,7 +15,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 2;
+        var exp = 10;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -129,48 +129,53 @@
 
         // Particle positions
         R["particlePosTex" + id] = createAndBindTexture(R["fbo" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.particleSideLength, R.particlePositions);
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.particleSideLength, R.particleSideLength, R.particlePositions);
 
         // Particle velocities
         R["particleVelTex" + id] = createAndBindTexture(R["fbo" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.particleSideLength, R.particleVelocities);
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.particleSideLength, R.particleSideLength, R.particleVelocities);
 
         // Particle forces
         R["forceTex" + id] = createAndBindTexture(R["fbo" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.particleSideLength, R.forces);
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.particleSideLength, R.particleSideLength, R.forces);
 
         R["bodyFBO" + id] = gl.createFramebuffer();
         // Rigid Body Data
         R["bodyPosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.bodySideLength, R.bodyPositions);
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyPositions);
 
         R["bodyRotTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.bodySideLength, R.bodyOrientations);
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyOrientations);
 
         R["linearVelTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.bodySideLength, R.linearVelocities);
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.bodySideLength, R.bodySideLength, R.linearVelocities);
 
         R["angularVelTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.bodySideLength, R.angularVelocities);
+            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.bodySideLength, R.bodySideLength, R.angularVelocities);
 
         //R["relativePosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
         //    gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL, R.particleSideLength, R.relativePositions);
 
-        //// Calculate gridTex size
-        //var numCells = Math.ceil(R.bound * 2 / R.particleSize);
-        //R.gridTexWidth = Math.ceil(Math.sqrt(numCells) * numCells);
-        //// Find next highest power of two
-        //R.gridTexPotWidth = Math.pow(2, Math.ceil(Math.log(R.gridTexWidth)/Math.log(2)));
-        //R.gridDimension = numCells;
-        //
-        //// Initialize grid values to 0
-        //var gridVals = [];
-        //for (var i = 0; i < Math.pow(R.gridTexPotWidth, 2.); i++) {
-        //    gridVals.push(0.0, 0.0, 0.0, 1.0);
-        //}
-        //
-        //R["gridTex" + id] = createAndBindTexture(R["fbo" + id],
-        //    gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.gridTexPotWidth, gridVals);
+        R["gridFBO" + id] = gl.createFramebuffer();
+        R.gridInfo = {};
+        debugger;
+        // Calculate gridTex size
+        R.gridInfo.numCellsPerSide = Math.ceil(R.bound * 2 / R.particleSize);
+
+        // gridTexTileDimensions are the dimensions of the flattened out grid texture in terms of individual
+        // 2-dimensional "slices." This is necessary for recreating the 3D texture in the shaders
+        R.gridInfo.gridTexTileDimensions = Math.ceil(Math.sqrt(R.gridInfo.numCellsPerSide));
+
+        R.gridInfo.gridTexWidth = R.gridInfo.gridTexTileDimensions * R.gridInfo.numCellsPerSide;
+        
+        // Initialize grid values to 0
+        var gridVals = [];
+        for (var i = 0; i < Math.pow(R.gridInfo.gridTexWidth, 2.); i++) {
+           gridVals.push(0.0, 0.0, 0.0, 1.0);
+        }
+
+        R["gridTex" + id] = createAndBindTexture(R["gridFBO" + id],
+           gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth, gridVals);
 
         // Check for framebuffer errors
         abortIfFramebufferIncomplete(R["fbo" + id]);
@@ -180,6 +185,7 @@
             gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL]);
 
         abortIfFramebufferIncomplete(R["bodyFBO" + id]);
+        abortIfFramebufferIncomplete(R["gridFBO" + id]);
         //gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
         //    gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
         //    gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
@@ -317,9 +323,9 @@
                 // Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_posTexSize = gl.getUniformLocation(prog, 'u_posTexSize');
-                p.u_gridSize = gl.getUniformLocation(prog, 'u_gridSize');
-                p.u_gridTexSize = gl.getUniformLocation(prog, 'u_texSize');
-                p.u_gridTexInnerLength = gl.getUniformLocation(prog, 'u_gridTexInnerLength'); // Should probably be renamed
+                p.u_gridSideLength = gl.getUniformLocation(prog, 'u_gridSideLength');
+                p.u_gridTexSize = gl.getUniformLocation(prog, 'u_gridTexSize');
+                p.u_gridTexTileDimensions = gl.getUniformLocation(prog, 'u_gridTexTileDimensions'); 
                 p.u_particleDiameter = gl.getUniformLocation(prog, 'u_particleDiameter');
                 p.a_idx = gl.getAttribLocation(prog, 'a_idx');
 
@@ -329,10 +335,17 @@
         );
     };
 
-	var createAndBindTexture = function(fbo, attachment, sideLength, data) {
+	var createAndBindTexture = function(fbo, attachment, sideLengthx, sideLengthy, data) {
 		var tex = gl.createTexture();
 
         gl.bindTexture(gl.TEXTURE_2D, tex);
+
+        if (data) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, sideLengthx, sideLengthy, 0, gl.RGBA, gl.FLOAT, new Float32Array(data));
+        }
+        else {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, sideLengthx, sideLengthy, 0, gl.RGBA, gl.FLOAT, null);
+        }
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         
@@ -340,12 +353,6 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-        if (data) {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, sideLength, sideLength, 0, gl.RGBA, gl.FLOAT, new Float32Array(data));
-        }
-        else {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, sideLength, sideLength, 0, gl.RGBA, gl.FLOAT, null);
-        }
         gl.bindTexture(gl.TEXTURE_2D, null);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);

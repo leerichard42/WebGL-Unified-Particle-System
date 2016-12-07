@@ -4,20 +4,21 @@ precision highp int;
 
 uniform sampler2D u_posTex;
 
-uniform int u_posTexSize; 
+uniform int u_posTexSize;
 uniform int u_gridSideLength;
-uniform int u_gridTexInnerLength;
+uniform int u_gridTexSize;
+uniform int u_gridTexTileDimensions;
 uniform float u_particleDiameter;
 
 attribute float a_idx;
 varying float v_idx;
 
 vec2 uvFrom3D(vec3 pos) {
-    float u = pos.x + float(u_gridSideLength) * (pos.z - float(u_gridTexInnerLength) * floor(pos.z / float(u_gridTexInnerLength)));
+    float u = pos.x + float(u_gridSideLength) * (pos.z - float(u_gridTexTileDimensions) * floor(pos.z / float(u_gridTexTileDimensions)));
 
-    float v = pos.y + float(u_gridSideLength) * floor(pos.x / float(u_gridTexInnerLength));
+    float v = pos.y + float(u_gridSideLength) * floor(pos.x / float(u_gridTexTileDimensions));
 
-    return vec2(u, v);
+    return vec2(u, v) / float(u_gridTexSize);
 }
 
 vec2 getUV(int idx, int side) {
@@ -34,6 +35,7 @@ void main() {
     vec2 gridUV = uvFrom3D(voxelIndex);
 
     gl_Position = vec4(gridUV, 0, 1);
+    //gl_Position = vec4(a_idx / 10., a_idx / 10., 0, 1);
     gl_PointSize = 1.0;
     v_idx = a_idx;
 }

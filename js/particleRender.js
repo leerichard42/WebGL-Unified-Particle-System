@@ -15,7 +15,7 @@
         //pos in A, vel_1 in A
         //force_1 in temp2, vel_2 in Temp1, force_2 in A
 
-        //generateGrid(state, R.progGrid, 'A');
+        generateGrid(state, R.progGrid, 'A');
 
         calculateForces(state, R.progPhysics, 'A', 'RK2_B');
 		updateEuler(state, R.progEuler, 'A', 'RK2_B', 'RK2_A');
@@ -28,23 +28,27 @@
         drawModels(state);
 
         drawDebug();
-        generateGrid(state, R.progGrid, 'A');
 
         pingPong();
     };
     
     var generateGrid = function(state, prog, target) {
         gl.useProgram(prog.prog);
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
-        gl.viewport(0, 0, R.gridTexPotWidth, R.gridTexPotWidth);
+        debugger;
         
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R["gridFBO" + target]);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.viewport(0, 0, R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth);
+        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        // gl.viewport(0, 0, canvas.width, canvas.height);
         // Bind position texture
         bindTextures(prog, [prog.u_posTex], [R.particlePosTexB]);
         
         gl.uniform1i(prog.u_posTexSize, R.particleSideLength);
-        gl.uniform1i(prog.u_gridSize, R.gridDimension);
-        gl.uniform1i(prog.u_gridTexInnerLength, R.gridTexWidth);
+        gl.uniform1i(prog.u_gridSideLength, R.bound);
+        gl.uniform1i(prog.u_gridTexSize, R.gridInfo.gridTexWidth);
+        gl.uniform1i(prog.u_gridTexTileDimensions, R.gridInfo.gridTexTileDimensions);
         gl.uniform1f(prog.u_particleDiameter, R.particleSize);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
@@ -60,6 +64,7 @@
 
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
+            
             gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
 			gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
@@ -81,6 +86,7 @@
 
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
+            
             gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
 			gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
@@ -102,6 +108,7 @@
 
         if (cfg.pingPong) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
+            
             gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
             gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
