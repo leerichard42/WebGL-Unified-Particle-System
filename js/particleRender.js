@@ -44,6 +44,12 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
+        gl.uniform1f(prog.u_testAngle, R.testAngle);
+        R.testAngle++;
+        //if (R.testAngle == 720) {
+        //    R.testAngle = 0;
+        //}
+
         bindTextures(prog, [prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_relPosTex],
             [R["bodyPosTex" + source], R["bodyRotTex" + source], R["relativePosTex" + source]]);
 

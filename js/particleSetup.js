@@ -90,7 +90,7 @@
         // Body orientations
         var orientations = [];
         for (i = 0; i < R.numBodies; i++) {
-            orientations.push( 0.0, 0.0, 1.0, 0.0);
+            orientations.push( 0.0, 0.0, 0.0, 1.0);
         }
         R.bodyOrientations = orientations;
 
@@ -109,6 +109,11 @@
                     }
                 }
             }
+            relativePositions[index] = 0;
+            relativePositions[index + 1] = 0;
+            relativePositions[index + 2] = 0;
+            relativePositions[index + 3] = i;
+            index += 4;
         }
         R.relativePositions = relativePositions;
 
@@ -119,6 +124,7 @@
         R.angularVelocities = angularVelocities;
 
         //Particle to rigid body ids
+        R.testAngle = 0;
     }
 
     var initRender = function() {
@@ -309,6 +315,7 @@
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
                 p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
+                p.u_testAngle = gl.getUniformLocation(prog, 'u_testAngle');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
