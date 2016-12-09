@@ -15,7 +15,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 6;
+        var exp = 10;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -70,6 +70,7 @@
         R.timeStep = 0.01;
         R.particleSize = 0.15;
         R.bound = .5;
+        R.gridBound = R.bound + .5;
     }
 
     var initRigidBodyData = function() {
@@ -172,7 +173,7 @@
         R.gridInfo = {};
 
         // Calculate gridTex size
-        R.gridInfo.numCellsPerSide = Math.ceil(R.bound * 2 / R.particleSize);
+        R.gridInfo.numCellsPerSide = Math.ceil((R.gridBound) * 2 / R.particleSize);
 
         // gridTexTileDimensions are the dimensions of the flattened out grid texture in terms of individual
         // 2-dimensional "slices." This is necessary for recreating the 3D texture in the shaders
@@ -360,6 +361,7 @@
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_posTexSize = gl.getUniformLocation(prog, 'u_posTexSize');
                 p.u_gridSideLength = gl.getUniformLocation(prog, 'u_gridSideLength');
+                p.u_gridNumCellsPerSide = gl.getUniformLocation(prog, 'u_gridNumCellsPerSide');
                 p.u_gridTexSize = gl.getUniformLocation(prog, 'u_gridTexSize');
                 p.u_gridTexTileDimensions = gl.getUniformLocation(prog, 'u_gridTexTileDimensions'); 
                 p.u_particleDiameter = gl.getUniformLocation(prog, 'u_particleDiameter');

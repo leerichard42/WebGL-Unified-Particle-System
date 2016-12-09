@@ -70,7 +70,8 @@
         bindTextures(prog, [prog.u_posTex], [R.particlePosTexB]);
         
         gl.uniform1i(prog.u_posTexSize, R.particleSideLength);
-        gl.uniform1i(prog.u_gridSideLength, R.bound);
+        gl.uniform1i(prog.u_gridSideLength, R.gridBound); // WARNING: R.bound + constant
+        gl.uniform1i(prog.u_gridNumCellsPerSide, R.gridInfo.numCellsPerSide);
         gl.uniform1i(prog.u_gridTexSize, R.gridInfo.gridTexWidth);
         gl.uniform1i(prog.u_gridTexTileDimensions, R.gridInfo.gridTexTileDimensions);
         gl.uniform1f(prog.u_particleDiameter, R.particleSize);
