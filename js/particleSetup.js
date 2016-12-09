@@ -15,7 +15,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 10;
+        var exp = 8;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
