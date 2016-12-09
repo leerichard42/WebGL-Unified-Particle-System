@@ -16,7 +16,11 @@ void main() {
     
     if (v_uv.x < 1./num_tex) {
         vec4 pos = texture2D(u_posTex, vec2(v_uv.x * num_tex, v_uv.y));
-        gl_FragColor = pos;
+        //if (pos.x < -1. || pos.y < -.2 || pos.z < -1.) {
+        //    gl_FragColor = vec4(1, 0,0,1);
+        //} else {
+            gl_FragColor = pos;
+        //}
     } else if (v_uv.x > 1./num_tex && v_uv.x < 2./num_tex) {
         vec4 vel = texture2D(u_velTex, vec2(v_uv.x * num_tex - 1.0, v_uv.y));
         gl_FragColor = abs(vel);

@@ -67,7 +67,7 @@ var width, height;
     };
 
     var init = function() {
-        var debugMode = true;
+        var debugMode = false;
 
         canvas = document.getElementById('canvas');
         renderer = new THREE.WebGLRenderer({
