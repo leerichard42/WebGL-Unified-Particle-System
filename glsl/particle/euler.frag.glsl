@@ -19,10 +19,7 @@ void main() {
         vec3 vel = texture2D(u_velTex, v_uv).xyz;
         vec3 force = texture2D(u_forceTex, v_uv).xyz;
 
-        //Check boundary conditions
         vec3 newPos = pos + vel * u_dt;
-
-        //Update velocity
         vec3 newVel = vel + force * u_dt;
 
         //Update position and velocity
