@@ -194,10 +194,15 @@
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL]);
+
+        abortIfFramebufferIncomplete(R["bodyFBO" + id]);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL]);
 
-        abortIfFramebufferIncomplete(R["bodyFBO" + id]);
         abortIfFramebufferIncomplete(R["gridFBO" + id]);
         //gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
         //    gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
@@ -266,7 +271,6 @@
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
-                p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 

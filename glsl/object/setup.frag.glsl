@@ -36,6 +36,10 @@ vec4 quat_mult(vec4 q1, vec4 q2) {
   return qr;
 }
 
+vec3 rotate_pos(vec3 pos, vec4 q) {
+    return quat_mult(quat_mult(q, vec4(pos, 0.0)), quat_conj(q)).xyz;
+}
+
 // Calculate the position and velocity of each rigid body particle in world space
 void main() {
 //    vec3 bodyPos = texture2D(u_bodyPosTex, v_uv).xyz;
@@ -46,7 +50,7 @@ void main() {
 
     int index = int(initRelPos.w);
     if (index > -1) {
-        vec3 currRelPos = quat_mult(quat_mult(bodyRot, vec4(initRelPos.xyz, 0.0)), quat_conj(bodyRot)).xyz;
+        vec3 currRelPos = rotate_pos(initRelPos.xyz, bodyRot);
         vec3 pos = bodyPos + currRelPos;
 //        vec3 vel = linearVel + cross(angularVel, currRelPos);
         gl_FragData[0] = vec4(pos, 1.0);

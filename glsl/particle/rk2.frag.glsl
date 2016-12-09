@@ -16,8 +16,8 @@ uniform float u_dt;
 varying vec2 v_uv;
 
 void main() {
-//    int index = int(texture2D(u_relPosTex, v_uv).w);
-//    if (index == -1) {
+    int index = int(texture2D(u_relPosTex, v_uv).w);
+    if (index == -1) {
         vec3 pos = texture2D(u_posTex, v_uv).xyz;
         vec3 vel_1 = texture2D(u_velTex1, v_uv).xyz;
         vec3 force_1 = texture2D(u_forceTex1, v_uv).xyz;
@@ -34,5 +34,5 @@ void main() {
     	//Update position and velocity
         gl_FragData[0] = vec4(newPos, 1.0);
         gl_FragData[1] = vec4(newVel, 1.0);
-//    }
+    }
 }

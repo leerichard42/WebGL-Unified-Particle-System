@@ -8,7 +8,6 @@ uniform sampler2D u_posTex;
 uniform sampler2D u_velTex;
 uniform sampler2D u_forceTex;
 uniform sampler2D u_relPosTex;
-uniform float u_diameter;
 uniform float u_dt;
 
 varying vec2 v_uv;
