@@ -23,3 +23,8 @@ The technique detailed in the paper can also be generalized to particles with va
 * Rigid body simulation
 * Fluid simulation
 * Unified particle simulation
+
+
+### References
+http://learningwebgl.com/blog/?p=1786
+http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html
