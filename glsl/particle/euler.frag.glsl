@@ -8,7 +8,6 @@ uniform sampler2D u_posTex;
 uniform sampler2D u_velTex;
 uniform sampler2D u_forceTex;
 uniform sampler2D u_relPosTex;
-uniform float u_diameter;
 uniform float u_dt;
 
 varying vec2 v_uv;
@@ -20,10 +19,7 @@ void main() {
         vec3 vel = texture2D(u_velTex, v_uv).xyz;
         vec3 force = texture2D(u_forceTex, v_uv).xyz;
 
-        //Check boundary conditions
         vec3 newPos = pos + vel * u_dt;
-
-        //Update velocity
         vec3 newVel = vel + force * u_dt;
 
         //Update position and velocity
