@@ -58,7 +58,6 @@
 
     var generateGrid = function(state, prog, target) {
         gl.useProgram(prog.prog);
-        debugger;
         
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["gridFBO" + target]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -80,7 +79,34 @@
         gl.enableVertexAttribArray(prog.a_idx);
         gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
         
+        // 4 passes to fit up to 4 particle indices per pixel
+        gl.enable(gl.STENCIL_TEST);
+        // 1 Pass
+        gl.colorMask(true, false, false, false);
+        gl.depthFunc(gl.LESS);
         gl.drawArrays(gl.POINTS, 0, R.numParticles);
+
+        // 2 Pass
+        gl.colorMask(false, true, false, false);
+        gl.depthFunc(gl.GREATER);
+        gl.stencilFunc(gl.EQUAL, 0, 0xFF); 
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+        gl.clear(gl.STENCIL_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS, 0, R.numParticles);
+
+        // 3 Pass
+        gl.colorMask(false, false, true, false);
+        gl.clear(gl.STENCIL_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS, 0, R.numParticles);
+        
+        // 4 Pass
+        gl.colorMask(false, false, false, true);
+        gl.clear(gl.STENCIL_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS, 0, R.numParticles);        
+
+        gl.disable(gl.STENCIL_TEST);
+        gl.depthFunc(gl.LESS);
+        gl.colorMask(true, true, true, true);
     }
     
     // Calculate forces on all the particles from collisions, gravity, and boundaries

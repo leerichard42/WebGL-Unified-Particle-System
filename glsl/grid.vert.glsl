@@ -42,7 +42,7 @@ void main() {
     // if (pos.x > float(u_gridSideLength) || pos.y > float(u_gridSideLength) || pos.z > float(u_gridSideLength)) {
     //     gl_Position = vec4(-.9, gridUV.y, 0, 1);
     // } else {
-        gl_Position = vec4(gridUV - vec2(1.), 0, 1);
+        gl_Position = vec4(gridUV - vec2(1.), a_idx * .00001, 1);
     // }
     gl_PointSize = 1.0;
 }

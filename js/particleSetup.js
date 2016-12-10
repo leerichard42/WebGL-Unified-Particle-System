@@ -190,6 +190,9 @@
         R["gridTex" + id] = createAndBindTexture(R["gridFBO" + id],
            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth, gridVals);
 
+        // Add depth and stencil attachments    
+        createAndBindDepthStencilBuffer(R["gridFBO" + id], R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth);
+
         // Check for framebuffer errors
         abortIfFramebufferIncomplete(R["fbo" + id]);
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
@@ -399,4 +402,19 @@
         return tex;
 
 	}
+
+    var createAndBindDepthStencilBuffer = function(fbo, sideLengthx, sideLengthy) {
+        var depthStencil = gl.createRenderbuffer();
+
+        gl.bindRenderbuffer(gl.RENDERBUFFER, depthStencil);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, sideLengthx, sideLengthy);
+        
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, depthStencil);
+
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+
+    }
 })();

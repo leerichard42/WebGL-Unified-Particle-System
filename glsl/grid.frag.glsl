@@ -7,5 +7,5 @@ precision highp int;
 varying float v_idx;
 
 void main() {
-    gl_FragData[0] = vec4(v_idx, 0, 0, 1);
+    gl_FragData[0] = vec4(v_idx, v_idx, v_idx, v_idx);
 }
