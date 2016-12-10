@@ -15,7 +15,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 8;
+        var exp = 10;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -186,7 +186,7 @@
         for (var i = 0; i < Math.pow(R.gridInfo.gridTexWidth, 2.); i++) {
            gridVals.push(0.0, 0.0, 0.0, 1.0);
         }
-        debugger;
+
         R["gridTex" + id] = createAndBindTexture(R["gridFBO" + id],
            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth, gridVals);
 

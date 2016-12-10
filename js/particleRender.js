@@ -79,18 +79,20 @@
         gl.enableVertexAttribArray(prog.a_idx);
         gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
         
-        // 4 passes to fit up to 4 particle indices per pixel
-        gl.enable(gl.STENCIL_TEST);
         // 1 Pass
         gl.colorMask(true, false, false, false);
         gl.depthFunc(gl.LESS);
         gl.drawArrays(gl.POINTS, 0, R.numParticles);
 
-        // 2 Pass
-        gl.colorMask(false, true, false, false);
+        // Set stencil values
+        // 4 passes to fit up to 4 particle indices per pixel
+        gl.enable(gl.STENCIL_TEST);
         gl.depthFunc(gl.GREATER);
         gl.stencilFunc(gl.EQUAL, 0, 0xFF); 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+
+        // 2 Pass
+        gl.colorMask(false, true, false, false);
         gl.clear(gl.STENCIL_BUFFER_BIT);
         gl.drawArrays(gl.POINTS, 0, R.numParticles);
 
