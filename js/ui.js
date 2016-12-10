@@ -5,7 +5,7 @@ var cfg;
 
     var Cfg = function() {
         this.pingPong = true;
-        this.showTexture = true;
+        this.showTexture = false;
     };
 
     var init = function() {

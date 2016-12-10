@@ -9,6 +9,7 @@ uniform sampler2D u_velTex;
 uniform sampler2D u_forceTex;
 uniform sampler2D u_gridTex;
 uniform sampler2D u_bodyPosTex;
+uniform sampler2D u_linearVelTex;
 
 varying vec2 v_uv;
 
@@ -27,7 +28,7 @@ void main() {
             gl_FragColor = abs(vel);
         } else if (v_uv.x > 2./num_tex && v_uv.x < 3./num_tex) {
             vec4 force = texture2D(u_forceTex, vec2(v_uv.x * num_tex - 2.0, v_uv.y * 2.0));
-            gl_FragColor = abs(force) * 0.9;
+            gl_FragColor = abs(force);
         } else if (v_uv.x > 3./num_tex) {
             vec4 grid = texture2D(u_gridTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0));
             gl_FragColor = grid;
@@ -37,6 +38,9 @@ void main() {
         if (v_uv.x < 1./num_tex) {
             vec4 bodyPos = texture2D(u_bodyPosTex, vec2(v_uv.x * num_tex, v_uv.y * 2.0));
             gl_FragColor = vec4(bodyPos.xyz, 1.0);
+        } else if (v_uv.x > 1./num_tex && v_uv.x < 2./num_tex) {
+            vec4 vel = texture2D(u_linearVelTex, vec2(v_uv.x * num_tex - 1.0, v_uv.y * 2.0));
+            gl_FragColor = abs(vel);
         }
         else {
             gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);

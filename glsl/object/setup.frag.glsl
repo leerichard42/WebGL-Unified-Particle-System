@@ -10,7 +10,7 @@ uniform sampler2D u_bodyPosTex;
 uniform sampler2D u_bodyRotTex;
 uniform sampler2D u_relPosTex;
 uniform sampler2D u_linearVelTex;
-uniform sampler2D u_angularVelTex;
+uniform sampler2D u_angularMomentumTex;
 uniform float u_testAngle;
 
 varying vec2 v_uv;
@@ -44,21 +44,24 @@ vec3 rotate_pos(vec3 pos, vec4 q) {
 
 // Calculate the position and velocity of each rigid body particle in world space
 void main() {
-    vec4 bodyPos = texture2D(u_bodyPosTex, v_uv);
-//    vec4 bodyRot = texture2D(u_bodyRotTex, v_uv);
-    vec4 bodyRot = vec4(0.0, 0.0, 0.0, 1.0);
-    vec3 linearVel = texture2D(u_linearVelTex, v_uv).xyz;
-    vec3 angularVel = texture2D(u_angularVelTex, v_uv).xyz;
-//    vec3 bodyPos = 0.5 * vec3(sin(u_testAngle / 60.0), 1.0, cos(u_testAngle / 60.0));
-//    vec4 bodyRot = quat_from_axis_angle(vec3(0.0, 1.0, 0.0), u_testAngle);
     vec4 initRelPos = texture2D(u_relPosTex, v_uv);
-
     int index = int(initRelPos.w);
     if (index > -1) {
+        vec4 bodyPos = texture2D(u_bodyPosTex, v_uv);
+    //    vec4 bodyRot = texture2D(u_bodyRotTex, v_uv);
+        vec4 bodyRot = vec4(0.0, 0.0, 0.0, 1.0);
+        vec3 linearVel = texture2D(u_linearVelTex, v_uv).xyz;
+        vec3 angularMomentum = texture2D(u_angularMomentumTex, v_uv).xyz;
+    //    vec3 bodyPos = 0.5 * vec3(sin(u_testAngle / 60.0), 1.0, cos(u_testAngle / 60.0));
+    //    vec4 bodyRot = quat_from_axis_angle(vec3(0.0, 1.0, 0.0), u_testAngle);
+
+
         vec3 currRelPos = rotate_pos(initRelPos.xyz, bodyRot);
         vec3 pos = bodyPos.xyz + currRelPos;
-        vec3 vel = linearVel + cross(angularVel, currRelPos);
+//        vec3 vel = linearVel + cross(angularMomentum, currRelPos);
+        vec3 vel = linearVel;
         gl_FragData[0] = vec4(pos, 1.0);
-        gl_FragData[1] = vec4(vel, 1.0);
+//        gl_FragData[1] = vec4(vec3(1.0, 0.0, 1.0), 1.0);
+        gl_FragData[1] = vec4(linearVel, 1.0);
     }
 }

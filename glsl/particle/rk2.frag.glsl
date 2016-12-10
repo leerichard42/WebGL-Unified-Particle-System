@@ -25,10 +25,6 @@ void main() {
         vec3 force_2 = texture2D(u_forceTex2, v_uv).xyz;
 
         vec3 newPos = pos + ((u_dt / 2.0) * (vel_1 + vel_2));
-        if (newPos.y < u_diameter / 2.0) {
-            newPos.y = u_diameter / 2.0;
-            vel_1.y = 0.0;
-        }
         vec3 newVel = vel_1 + ((u_dt / 2.0) * (force_1 + force_2));
 
     	//Update position and velocity

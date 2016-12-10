@@ -6,6 +6,7 @@ precision highp int;
 
 uniform sampler2D u_posTex;
 uniform sampler2D u_velTex;
+uniform sampler2D u_relPosTex;
 uniform int u_particleSide;
 uniform float u_diameter;
 uniform float u_dt;
@@ -20,12 +21,15 @@ vec2 getUV(int idx, int side) {
 }
 
 void main() {
+    int index = int(texture2D(u_relPosTex, v_uv).w);
+
     // Spring coefficient
     float k = 400.0;
-    float bounds_k = 200.0;
+    float bounds_k = 600.0;
 
     // Damping coefficient
     float n = 4.0;
+    float bounds_n = 20.0;
     // Friction coefficient
     float u = 1.0;
 
@@ -56,25 +60,32 @@ void main() {
         }
     }
 
+
     vec3 force = spring_total + damping_total;
     force.y -= 9.8;
 
     //Predict next position
     vec3 newPos = pos + vel * u_dt;
 
-    bool applyFriction = false;
     //Boundary conditions
+    bool applyFriction = false;
     if (newPos.y < u_diameter / 2.0) {
         // Negate gravity if contacting ground
-        force.y += 9.8;
+//        if (index == -1) {
+            force.y += 9.8;
+            force.y += bounds_k * (u_diameter / 2.0 - newPos.y) * 1.0;
+            force.y -= bounds_n * vel.y;
+//        }
         applyFriction = true;
     }
     if (abs(newPos.x) > u_bound) {
         force.x += bounds_k * (u_bound - abs(newPos.x)) * sign(newPos.x);
+        force.x -= bounds_n * vel.x;
         applyFriction = true;
     }
     if (abs(newPos.z) > u_bound) {
         force.z += bounds_k * (u_bound - abs(newPos.z)) * sign(newPos.z);
+        force.z -= bounds_n * vel.z;
         applyFriction = true;
     }
     //Apply friction if contacting the boundary
