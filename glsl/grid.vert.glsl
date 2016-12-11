@@ -19,7 +19,7 @@ vec2 uvFrom3D(vec3 pos) {
 
     float v = pos.y + float(u_gridNumCellsPerSide) * floor(pos.x / float(u_gridTexTileDimensions));
 
-    return vec2(u, v) / float(u_gridTexSize);
+    return vec2(u, v) / float(u_gridTexSize) - vec2(1.);
 }
 
 vec2 getUV(int idx, int side) {
@@ -35,14 +35,8 @@ void main() {
 
     vec3 voxelIndex = (vec3(pos) - vec3(-u_gridSideLength, -u_gridSideLength, -u_gridSideLength)) / u_particleDiameter;
     
-    // if (voxelIndex.x > float(2*u_gridNumCellsPerSide) || voxelIndex.y > float(2*u_gridNumCellsPerSide) || voxelIndex.z > float(2*u_gridNumCellsPerSide)) {
-    //     v_idx = 0.;
-    // }
     vec2 gridUV = uvFrom3D(voxelIndex);
-    // if (pos.x > float(u_gridSideLength) || pos.y > float(u_gridSideLength) || pos.z > float(u_gridSideLength)) {
-    //     gl_Position = vec4(-.9, gridUV.y, 0, 1);
-    // } else {
-        gl_Position = vec4(gridUV - vec2(1.), a_idx * .00001, 1);
-    // }
+    
+    gl_Position = vec4(gridUV, a_idx * .00001, 1);
     gl_PointSize = 1.0;
 }

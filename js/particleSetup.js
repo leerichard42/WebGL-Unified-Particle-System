@@ -227,7 +227,7 @@
 			function(prog) {
 				// Create an object to hold info about this shader program
 				var p = { prog: prog };
-
+                debugger;
 				// Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
@@ -236,6 +236,13 @@
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
                 p.u_bound = gl.getUniformLocation(prog, 'u_bound');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
+
+                // Grid uniforms
+                p.u_gridTex = gl.getUniformLocation(prog, 'u_gridTex');
+                p.u_gridSideLength = gl.getUniformLocation(prog, 'u_gridSideLength');
+                p.u_gridNumCellsPerSide = gl.getUniformLocation(prog, 'u_gridNumCellsPerSide');
+                p.u_gridTexSize = gl.getUniformLocation(prog, 'u_gridTexSize');
+                p.u_gridTexTileDimensions = gl.getUniformLocation(prog, 'u_gridTexTileDimensions');
 
 				// Save the object into this variable for access later
 				R.progPhysics = p;

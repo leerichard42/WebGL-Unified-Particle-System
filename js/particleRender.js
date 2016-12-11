@@ -22,11 +22,12 @@
         //pos in A, vel_1 in A
         //force_1 in rk2b, vel_2 in rk2a, force_2 in A
 
-        generateGrid(state, R.progGrid, 'A');
-
+        generateGrid(state, R.progGrid, 'B', 'A');
         calculateForces(state, R.progPhysics, 'A', 'RK2_B');
         updateEuler(state, 'A', 'RK2_B', 'RK2_A');
         updateBodyEuler(state, 'A', 'RK2_B', 'B');
+
+        generateGrid(state, R.progGrid, 'B', 'RK2_A');
         calculateForces(state, R.progPhysics, 'RK2_A', 'A');
         updateParticlesRK2(state, R.progRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
 
@@ -57,17 +58,17 @@
         renderFullScreenQuad(prog);
     }
 
-    var generateGrid = function(state, prog, target) {
+    var generateGrid = function(state, prog, source, target) {
         gl.useProgram(prog.prog);
-        
+        gl.disable(gl.BLEND);
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["gridFBO" + target]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.viewport(0, 0, R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth);
-        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        // gl.viewport(0, 0, canvas.width, canvas.height);
+
         // Bind position texture
-        bindTextures(prog, [prog.u_posTex], [R.particlePosTexB]);
+        bindTextures(prog, [prog.u_posTex], [R["particlePosTex" + source]]);
         
         gl.uniform1i(prog.u_posTexSize, R.particleSideLength);
         gl.uniform1i(prog.u_gridSideLength, R.gridBound); // WARNING: R.bound + constant
@@ -110,6 +111,7 @@
         gl.disable(gl.STENCIL_TEST);
         gl.depthFunc(gl.LESS);
         gl.colorMask(true, true, true, true);
+        gl.enable(gl.BLEND);
     }
     
     // Calculate forces on all the particles from collisions, gravity, and boundaries
@@ -124,9 +126,16 @@
         gl.uniform1f(prog.u_dt, R.timeStep);
         gl.uniform1f(prog.u_bound, R.bound);
 
+        // Fill in grid uniforms
+        gl.uniform1i(prog.u_gridSideLength, R.gridBound); // WARNING: R.bound + constant
+        gl.uniform1i(prog.u_gridNumCellsPerSide, R.gridInfo.numCellsPerSide);
+        gl.uniform1i(prog.u_gridTexSize, R.gridInfo.gridTexWidth);
+        gl.uniform1i(prog.u_gridTexTileDimensions, R.gridInfo.gridTexTileDimensions);
+
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
-        bindTextures(prog, [prog.u_posTex, prog.u_velTex], [R["particlePosTex" + source], R["particleVelTex" + source]]);
+        bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_gridTex], 
+                            [R["particlePosTex" + source], R["particleVelTex" + source], R["gridTex" + source]]);
 
         renderFullScreenQuad(prog);
 	}

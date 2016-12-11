@@ -27,7 +27,7 @@ void main() {
             gl_FragColor = abs(force) * 0.9;
         } else if (v_uv.x > 3./num_tex) {
             vec4 grid = texture2D(u_gridTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0));
-            gl_FragColor = vec4(grid.rgb * .00005, 1);
+            gl_FragColor = vec4(grid.rgb * .005, 1);
         }
     }
     else {
