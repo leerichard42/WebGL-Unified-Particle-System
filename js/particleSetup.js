@@ -15,7 +15,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 6;
+        var exp = 8;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -25,13 +25,12 @@
         // Initialize particle positions
         var positions = [];
         var gridBounds = {
-            min: 1,
-            max: 2
+            min: 0,
+            max: 1
         };
         for (var i = 0; i < R.numParticles; i++) {
             positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/,
                             Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min,
-                            //gridBounds.min + i / 100.0,
                             Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/, 1.0);
         }
         R.particlePositions = positions;
@@ -85,7 +84,7 @@
         // Body positions
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
-            positions.push( 0, 2.4 + i/2.0, 0, particlesPerBody * i);
+            positions.push( 0, 1.2 + i/2.0, 0, particlesPerBody * i);
         }
         R.bodyPositions = positions;
 
@@ -365,7 +364,9 @@
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_gridTex = gl.getUniformLocation(prog, 'u_gridTex');
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
+                p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
                 p.u_linearVelTex = gl.getUniformLocation(prog, 'u_linearVelTex');
+                p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later

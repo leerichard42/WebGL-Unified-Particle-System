@@ -309,13 +309,15 @@
     var drawDebug = function() {
         // Debug
         if (cfg.showTexture) {
-            gl.useProgram(R.progDebug.prog);
+            var prog = R.progDebug;
+            gl.useProgram(prog.prog);
             gl.viewport(0, 0, 128 * 4, 128 * 2);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            gl.uniform1i(R.progDebug.u_particleSideLength, R.particleSideLength);
-            bindTextures(R.progDebug, [R.progDebug.u_posTex, R.progDebug.u_velTex,
-                R.progDebug.u_forceTex, R.progDebug.u_gridTex, R.progDebug.u_bodyPosTex, R.progDebug.u_linearVelTex],
-                [R.particlePosTexA, R.particleVelTexA, R.forceTexRK2_B, R.gridTexA, R.bodyPosTexRK2_B, R.linearVelTexRK2_B]);
+            gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
+            bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_gridTex,
+                prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_linearVelTex, prog.u_angularMomentumTex],
+                [R.particlePosTexA, R.particleVelTexA, R.forceTexRK2_B, R.gridTexA,
+                    R.bodyPosTexA, R.bodyRotTexA, R.linearVelTexA, R.angularMomentumTexA]);
             renderFullScreenQuad(R.progDebug);
         }
     }
