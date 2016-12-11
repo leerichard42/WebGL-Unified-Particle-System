@@ -75,18 +75,28 @@
 
     var initRigidBodyData = function() {
         R.rigidBodiesEnabled = true;
-        var exp = 0;
+        var exp = 2;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
         R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
         R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
         var particlesPerBody = 9;
+        if (particlesPerBody * R.numBodies > R.numParticles) {
+            throw new Error("More body particles than available particles!");
+        }
 
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
         // Body positions
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
-            positions.push( 0, 2.4 + i/2.0, 0, particlesPerBody * i);
+            positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                2.4 + i/2.0,
+                Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                particlesPerBody * i);
         }
         R.bodyPositions = positions;
 
@@ -97,8 +107,15 @@
         }
         R.bodyOrientations = orientations;
 
+        // Linear and angular velocities
+        var linearMomenta = Array(R.numBodies * 4).fill(0.0);
+        R.linearMomenta = linearMomenta;
+        var angularMomenta = Array(R.numBodies * 4).fill(0.0);
+        R.angularMomenta = angularMomenta;
+
         // Relative particle positions (cube for now) and rigid body index
         var relativePositions = Array(R.numParticles * 4).fill(-1.0);
+        var bodyMass = 0.3;
         if (R.rigidBodiesEnabled) {
             var index = 0;
             for (i = 0; i < R.numBodies; i++) {
@@ -109,6 +126,8 @@
                             relativePositions[index + 1] = y * R.particleSize - R.particleSize / 2.0;
                             relativePositions[index + 2] = z * R.particleSize - R.particleSize / 2.0;
                             relativePositions[index + 3] = i;
+                            R.particlePositions[index + 3] = bodyMass;
+                            linearMomenta[index + 3] = particlesPerBody;
                             index += 4;
                         }
                     }
@@ -117,17 +136,14 @@
                 relativePositions[index + 1] = 0;
                 relativePositions[index + 2] = 0;
                 relativePositions[index + 3] = i;
+                R.particlePositions[index + 3] = bodyMass;
+                linearMomenta[index + 3] = particlesPerBody;
                 index += 4;
             }
         }
         R.relativePositions = relativePositions;
 
-        // Linear and angular velocities
-        var linearMomenta = Array(R.numBodies * 4).fill(0.0);
-        linearMomenta[3] = particlesPerBody;
-        R.linearMomenta = linearMomenta;
-        var angularMomenta = Array(R.numBodies * 4).fill(0.0);
-        R.angularMomenta = angularMomenta;
+
     }
 
     var initRender = function() {
@@ -166,6 +182,7 @@
             // Rigid Body Data
             R["bodyPosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
                 gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyPositions);
+            console.log(R.bodyPositions);
 
             R["bodyRotTex" + id] = createAndBindTexture(R["bodyFBO" + id],
                 gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyOrientations);

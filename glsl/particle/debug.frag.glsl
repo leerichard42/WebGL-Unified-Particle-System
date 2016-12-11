@@ -36,14 +36,16 @@ void main() {
     }
     else {
         if (v_uv.x < 1./num_tex) {
-            vec4 bodyPos = texture2D(u_bodyPosTex, vec2(v_uv.x * num_tex, v_uv.y * 2.0));
-            gl_FragColor = vec4(bodyPos.xyz, 1.0);
+            vec4 bodyPos = texture2D(u_bodyPosTex, vec2(v_uv.x * num_tex, v_uv.y * 2.0 - 1.0));
+            gl_FragColor = vec4(bodyPos.xyz / 4.0, 1.0);
+//            gl_FragColor = vec4(vec3(bodyPos.w) / 36.0, 1.0);
         } else if (v_uv.x > 1./num_tex && v_uv.x < 2./num_tex) {
             vec4 bodyRot = texture2D(u_bodyRotTex, vec2(v_uv.x * num_tex - 1.0, v_uv.y * 2.0 - 1.0));
             gl_FragColor = bodyRot;
         } else if (v_uv.x > 2./num_tex && v_uv.x < 3./num_tex) {
             vec4 vel = texture2D(u_linearMomentumTex, vec2(v_uv.x * num_tex - 2.0, v_uv.y * 2.0 - 1.0));
             gl_FragColor = vec4(abs(vel).xyz, 1.0);
+//            gl_FragColor = vec4(vec3(vel.w), 1.0);
         } else if (v_uv.x > 3./num_tex) {
 //            vec4 momentum = texture2D(u_angularMomentumTex, vec2(v_uv.x * num_tex - 1.0, v_uv.y * 2.0));
 //            gl_FragColor = vec4(abs(momentum).xyz, 1.0);

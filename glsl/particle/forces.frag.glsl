@@ -26,10 +26,7 @@ void main() {
     vec4 relPosTexel = texture2D(u_relPosTex, v_uv);
     int index = int(relPosTexel.w);
 
-    float mass = 1.0;
-    if (index > -1) {
-        mass = 0.2;
-    }
+    float mass = posTexel.w;
 
     // Spring coefficient
     float k = 400.0;

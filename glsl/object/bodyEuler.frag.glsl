@@ -61,7 +61,9 @@ void main() {
     vec3 totalForce = vec3(0.0);
     vec3 totalTorque = vec3(0.0);
     for (int i = 0; i < 1048576; i++) {
-        if (i < int(startIndex) || i == int(startIndex + numParticles))
+        if (i < int(startIndex))
+            continue;
+        if (i == int(startIndex + numParticles))
             break;
 
         vec2 uv = getUV(i, u_particleSide);
@@ -73,7 +75,7 @@ void main() {
         totalTorque += cross(rel_pos, force);
     }
 
-    float mass = 0.2;
+    float mass = texture2D(u_posTex, getUV(int(startIndex), u_particleSide)).w;
     //update position
     vec3 linearVel = linearMomentum / (numParticles * mass);
     vec3 newPos = bodyPos + linearVel * u_dt;

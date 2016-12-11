@@ -20,23 +20,24 @@
             }
         }
 
-
         // RK2 Integration
         //pos in A, vel_1 in A
         //force_1 in rk2b, vel_2 in rk2a, force_2 in A
 
         generateGrid(state, R.progGrid, 'A');
 
-        calculateForces(state, R.progPhysics, 'A', 'RK2_B');
-        updateEuler(state, 'A', 'RK2_B', 'RK2_A');
+        if (cfg.pingPong) {
+            calculateForces(state, R.progPhysics, 'A', 'RK2_B');
+            updateEuler(state, 'A', 'RK2_B', 'RK2_A');
 
-        //updateBodyEuler(state, 'A', 'RK2_B', 'RK2_A');
-        //computeBodyParticles
+            //updateBodyEuler(state, 'A', 'RK2_B', 'RK2_A');
+            //computeBodyParticles
 
-        calculateForces(state, R.progPhysics, 'RK2_A', 'A');
-        updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
+            calculateForces(state, R.progPhysics, 'RK2_A', 'A');
+            updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
 
-        //updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
+            //updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
+        }
 
         //updateEuler(state, 'A', 'RK2_B', 'B');
         if (R.rigidBodiesEnabled) {

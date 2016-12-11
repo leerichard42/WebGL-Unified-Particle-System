@@ -59,19 +59,20 @@ void main() {
     vec4 relPosTexel = texture2D(u_relPosTex, v_uv);
     int index = int(relPosTexel.w);
     if (index > -1) {
-        vec4 bodyPos = texture2D(u_bodyPosTex, getUV(index, u_bodySide));
-        vec4 bodyRot = texture2D(u_bodyRotTex, getUV(index, u_bodySide));
-        vec4 linearMomentumTexel = texture2D(u_linearMomentumTex, getUV(index, u_bodySide));
+        vec2 uv = getUV(index, u_bodySide);
+        vec4 bodyPos = texture2D(u_bodyPosTex, uv);
+        vec4 bodyRot = texture2D(u_bodyRotTex, uv);
+        vec4 linearMomentumTexel = texture2D(u_linearMomentumTex, uv);
         vec3 linearMomentum = linearMomentumTexel.xyz;
-        float mass = 0.2;
+        float mass = posTexel.w;
         float numParticles = linearMomentumTexel.w;
         vec3 linearVel = linearMomentum / (numParticles * mass);
-        vec3 angularMomentum = texture2D(u_angularMomentumTex, v_uv).xyz;
+        vec3 angularMomentum = texture2D(u_angularMomentumTex, uv).xyz;
 
         vec3 currRelPos = rotate_pos(relPosTexel.xyz, bodyRot);
         vec3 pos = bodyPos.xyz + currRelPos;
         vec3 vel = linearVel + cross(angularMomentum, currRelPos);
-        gl_FragData[0] = vec4(pos, 1.0);
+        gl_FragData[0] = vec4(pos, mass);
         gl_FragData[1] = vec4(vel, 1.0);
         gl_FragData[2] = forceTexel;
         gl_FragData[3] = relPosTexel;
