@@ -22,12 +22,12 @@
         //pos in A, vel_1 in A
         //force_1 in rk2b, vel_2 in rk2a, force_2 in A
 
-        generateGrid(state, R.progGrid, 'B', 'A');
+        generateGrid(state, R.progGrid, 'A', 'A');
         calculateForces(state, R.progPhysics, 'A', 'RK2_B');
         updateEuler(state, 'A', 'RK2_B', 'RK2_A');
         updateBodyEuler(state, 'A', 'RK2_B', 'B');
 
-        generateGrid(state, R.progGrid, 'B', 'RK2_A');
+        generateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
         calculateForces(state, R.progPhysics, 'RK2_A', 'A');
         updateParticlesRK2(state, R.progRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
 
