@@ -21,7 +21,10 @@ vec2 getUV(int idx, int side) {
 }
 
 void main() {
-    int index = int(texture2D(u_relPosTex, v_uv).w);
+    vec4 posTexel = texture2D(u_posTex, v_uv);
+    vec4 velTexel = texture2D(u_velTex, v_uv);
+    vec4 relPosTexel = texture2D(u_relPosTex, v_uv);
+    int index = int(relPosTexel.w);
 
     float mass = 1.0;
     if (index > -1) {
@@ -34,14 +37,14 @@ void main() {
 
     // Damping coefficient
     float n = 4.0;
-    float bounds_n = 20.0;
+    float bounds_n = 40.0;
     // Friction coefficient
     float u = 0.4;
 
     vec3 spring_total = vec3(0.0);
     vec3 damping_total = vec3(0.0);
-    vec3 pos = texture2D(u_posTex, v_uv).xyz;
-    vec3 vel = texture2D(u_velTex, v_uv).xyz;
+    vec3 pos = posTexel.xyz;
+    vec3 vel = velTexel.xyz;
 
     // Naive loop through all particles
     // Hack because WebGL cannot compare loop index to non-constant expression
@@ -91,5 +94,8 @@ void main() {
         force.z -= bounds_n * vel.z;
     }
 
+    gl_FragData[0] = posTexel;
+    gl_FragData[1] = velTexel;
     gl_FragData[2] = vec4(force, 1.0); //force output
+    gl_FragData[3] = relPosTexel;
 }

@@ -29,12 +29,16 @@
 
         calculateForces(state, R.progPhysics, 'A', 'RK2_B');
         updateEuler(state, 'A', 'RK2_B', 'RK2_A');
+
         //updateBodyEuler(state, 'A', 'RK2_B', 'RK2_A');
         //computeBodyParticles
+
         calculateForces(state, R.progPhysics, 'RK2_A', 'A');
-        updateParticlesRK2(state, R.progRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
+        updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
+
         //updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
 
+        //updateEuler(state, 'A', 'RK2_B', 'B');
         if (R.rigidBodiesEnabled) {
             updateBodyEuler(state, 'A', 'RK2_B', 'B');
         }
@@ -46,7 +50,9 @@
 
         drawDebug();
 
-        if (cfg.pingPong) {
+        //only ping pong the buffers if not using the rigid body setup shader since
+        //the setup shader transfers the particle data from B to A
+        if (!R.rigidBodiesEnabled && cfg.pingPong) {
             pingPong('A', 'B');
         }
     };
@@ -55,14 +61,22 @@
         gl.useProgram(prog.prog);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
+        gl.disable(gl.BLEND);
+        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
-        bindTextures(prog, [prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_relPosTex,
+        gl.uniform1i(prog.u_bodySide, R.bodySideLength);
+
+        bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_bodyPosTex,
+            prog.u_bodyRotTex, prog.u_relPosTex,
             prog.u_linearMomentumTex, prog.u_angularMomentumTex],
-            [R["bodyPosTex" + source], R["bodyRotTex" + source], R["relativePosTex" + source],
+            [R["particlePosTex" + source], R["particleVelTex" + source], R["forceTex" + source],
+                R["bodyPosTex" + source],
+                R["bodyRotTex" + source], R["relativePosTex" + source],
                 R["linearMomentumTex" + source], R["angularMomentumTex" + source]]);
 
         renderFullScreenQuad(prog);
+        gl.enable(gl.BLEND);
     }
 
     var generateGrid = function(state, prog, target) {
@@ -125,6 +139,8 @@
 		gl.useProgram(prog.prog);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
+        gl.disable(gl.BLEND);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
         gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
@@ -138,7 +154,8 @@
             [R["particlePosTex" + source], R["particleVelTex" + source], R["relativePosTex" + source]]);
 
         renderFullScreenQuad(prog);
-	}
+        gl.enable(gl.BLEND);
+    }
 
     // Update the state of all particles (TODO: and rigid bodies) with
     // the computed forces and velocities using explicit euler
@@ -147,6 +164,8 @@
 		gl.useProgram(prog.prog);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
+        gl.disable(gl.BLEND);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
         gl.uniform1f(prog.u_dt, R.timeStep);
@@ -159,7 +178,8 @@
                 R["relativePosTex" + stateSource], R["linearMomentumTex" + stateSource], R["angularMomentumTex" + stateSource]]);
 
         renderFullScreenQuad(prog);
-	}
+        gl.enable(gl.BLEND);
+    }
 
     var updateBodyEuler = function(state, stateSource, forceSource, target) {
         var prog = R.progBodyEuler;
@@ -191,6 +211,8 @@
         gl.useProgram(prog.prog);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
+        gl.disable(gl.BLEND);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
         gl.uniform1f(prog.u_diameter, R.particleSize);
@@ -204,6 +226,7 @@
                 R["particleVelTex" + vel_2], R["forceTex" + force_2], R["relativePosTex" + pos]]);
 
         renderFullScreenQuad(prog);
+        gl.enable(gl.BLEND);
     }
 
     var updateBodyRK2 = function(state, prog, pos, vel_1, force_1, vel_2, force_2, target) {

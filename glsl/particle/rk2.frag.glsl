@@ -16,13 +16,19 @@ uniform float u_dt;
 varying vec2 v_uv;
 
 void main() {
+    vec4 posTexel = texture2D(u_posTex, v_uv);
+    vec4 velTexel_1 = texture2D(u_velTex1, v_uv);
+    vec4 velTexel_2 = texture2D(u_velTex2, v_uv);
+    vec4 forceTexel_1 = texture2D(u_forceTex1, v_uv);
+    vec4 forceTexel_2 = texture2D(u_forceTex2, v_uv);
+    vec4 relPosTexel = texture2D(u_relPosTex, v_uv);
     int index = int(texture2D(u_relPosTex, v_uv).w);
     if (index == -1) {
-        vec3 pos = texture2D(u_posTex, v_uv).xyz;
-        vec3 vel_1 = texture2D(u_velTex1, v_uv).xyz;
-        vec3 force_1 = texture2D(u_forceTex1, v_uv).xyz;
-        vec3 vel_2 = texture2D(u_velTex2, v_uv).xyz;
-        vec3 force_2 = texture2D(u_forceTex2, v_uv).xyz;
+        vec3 pos = posTexel.xyz;
+        vec3 vel_1 = velTexel_1.xyz;
+        vec3 force_1 = forceTexel_1.xyz;
+        vec3 vel_2 = velTexel_2.xyz;
+        vec3 force_2 = forceTexel_2.xyz;
         float mass = 1.0;
 
         vec3 newPos = pos + ((u_dt / 2.0) * (vel_1 + vel_2));
@@ -31,5 +37,13 @@ void main() {
     	//Update position and velocity
         gl_FragData[0] = vec4(newPos, 1.0);
         gl_FragData[1] = vec4(newVel, 1.0);
+        gl_FragData[2] = texture2D(u_forceTex1, v_uv);
+        gl_FragData[3] = relPosTexel;
+    }
+    else {
+        gl_FragData[0] = posTexel;
+        gl_FragData[1] = velTexel_1;
+        gl_FragData[2] = forceTexel_1;
+        gl_FragData[3] = relPosTexel;
     }
 }

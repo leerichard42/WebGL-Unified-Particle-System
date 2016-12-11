@@ -6,12 +6,15 @@ precision highp int;
 
 //run on each particle, write to A particle pos/vel tex
 
+uniform sampler2D u_posTex;
+uniform sampler2D u_velTex;
+uniform sampler2D u_forceTex;
 uniform sampler2D u_bodyPosTex;
 uniform sampler2D u_bodyRotTex;
 uniform sampler2D u_relPosTex;
 uniform sampler2D u_linearMomentumTex;
 uniform sampler2D u_angularMomentumTex;
-uniform float u_testAngle;
+uniform int u_bodySide;
 
 varying vec2 v_uv;
 
@@ -42,23 +45,41 @@ vec3 rotate_pos(vec3 pos, vec4 q) {
     return quat_mult(quat_mult(q, vec4(pos, 0.0)), quat_conj(q)).xyz;
 }
 
+vec2 getUV(int idx, int side) {
+    float v = float(idx / side) / float(side);
+    float u = float(idx - (idx / side) * side) / float(side);
+    return vec2(u, v);
+}
+
 // Calculate the position and velocity of each rigid body particle in world space
 void main() {
-    vec4 initRelPos = texture2D(u_relPosTex, v_uv);
-    int index = int(initRelPos.w);
+    vec4 posTexel = texture2D(u_posTex, v_uv);
+    vec4 velTexel = texture2D(u_velTex, v_uv);
+    vec4 forceTexel = texture2D(u_forceTex, v_uv);
+    vec4 relPosTexel = texture2D(u_relPosTex, v_uv);
+    int index = int(relPosTexel.w);
     if (index > -1) {
-        vec4 bodyPos = texture2D(u_bodyPosTex, v_uv);
-        vec4 bodyRot = texture2D(u_bodyRotTex, v_uv);
-        vec3 linearMomentum = texture2D(u_linearMomentumTex, v_uv).xyz;
+        vec4 bodyPos = texture2D(u_bodyPosTex, getUV(index, u_bodySide));
+        vec4 bodyRot = texture2D(u_bodyRotTex, getUV(index, u_bodySide));
+        vec4 linearMomentumTexel = texture2D(u_linearMomentumTex, getUV(index, u_bodySide));
+        vec3 linearMomentum = linearMomentumTexel.xyz;
         float mass = 0.2;
-        float numParticles = texture2D(u_linearMomentumTex, v_uv).w;
+        float numParticles = linearMomentumTexel.w;
         vec3 linearVel = linearMomentum / (numParticles * mass);
         vec3 angularMomentum = texture2D(u_angularMomentumTex, v_uv).xyz;
 
-        vec3 currRelPos = rotate_pos(initRelPos.xyz, bodyRot);
+        vec3 currRelPos = rotate_pos(relPosTexel.xyz, bodyRot);
         vec3 pos = bodyPos.xyz + currRelPos;
         vec3 vel = linearVel + cross(angularMomentum, currRelPos);
         gl_FragData[0] = vec4(pos, 1.0);
         gl_FragData[1] = vec4(vel, 1.0);
+        gl_FragData[2] = forceTexel;
+        gl_FragData[3] = relPosTexel;
+    }
+    else {
+        gl_FragData[0] = posTexel;
+        gl_FragData[1] = velTexel;
+        gl_FragData[2] = forceTexel;
+        gl_FragData[3] = relPosTexel;
     }
 }

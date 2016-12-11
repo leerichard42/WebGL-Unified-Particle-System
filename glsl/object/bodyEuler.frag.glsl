@@ -110,6 +110,7 @@ void main() {
     gl_FragData[2] = vec4(linearMomentum, numParticles);
 
     //update angular momentum
+    angularMomentum *= 0.95; //damping
     angularMomentum += totalTorque * u_dt;
     gl_FragData[3] = vec4(angularMomentum, 0.0);
 }

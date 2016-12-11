@@ -25,11 +25,11 @@ void main() {
     int idx = int(a_idx);
 
     vec2 uv = getUV(idx, u_side);
-    vec4 pos = texture2D(u_posTex, uv);
+    vec3 pos = texture2D(u_posTex, uv).xyz;
     vec4 vel = texture2D(u_velTex, uv);
 
-    v_eyePos = u_cameraMat * pos;
+    v_eyePos = u_cameraMat * vec4(pos, 1.0);
     v_uv = uv;
-    gl_Position = u_cameraMat * pos;
+    gl_Position = u_cameraMat * vec4(pos, 1.0);
 	gl_PointSize = (u_nearPlaneHeight * u_diameter) / gl_Position.w;
 }
