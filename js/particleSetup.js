@@ -15,7 +15,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 6;
+        var exp = 8;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -31,8 +31,8 @@
         for (var i = 0; i < R.numParticles; i++) {
             positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/,
                             Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min,
-                            //gridBounds.min + i / 100.0,
-                            Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/, 1.0);
+                            Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/,
+                1.0);
         }
         R.particlePositions = positions;
 
@@ -74,18 +74,29 @@
     }
 
     var initRigidBodyData = function() {
-        var exp = 0;
+        R.rigidBodiesEnabled = true;
+        var exp = 2;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
-        R.numBodies = Math.pow(2, exp);
-        R.bodySideLength = Math.sqrt(R.numBodies);
+        R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
+        R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
         var particlesPerBody = 9;
+        if (particlesPerBody * R.numBodies > R.numParticles) {
+            throw new Error("More body particles than available particles!");
+        }
 
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
         // Body positions
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
-            positions.push( 0.0, 2.4 + i/2.0, 0.0, particlesPerBody * i);
+            positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                2.4 + i/2.0,
+                Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                particlesPerBody * i);
         }
         R.bodyPositions = positions;
 
@@ -96,38 +107,43 @@
         }
         R.bodyOrientations = orientations;
 
+        // Linear and angular velocities
+        var linearMomenta = Array(R.numBodies * 4).fill(0.0);
+        R.linearMomenta = linearMomenta;
+        var angularMomenta = Array(R.numBodies * 4).fill(0.0);
+        R.angularMomenta = angularMomenta;
+
         // Relative particle positions (cube for now) and rigid body index
         var relativePositions = Array(R.numParticles * 4).fill(-1.0);
-        var index = 0;
-        for (i = 0; i < R.numBodies; i++) {
-            for (var x = 0; x < 2; x++) {
-                for (var y = 0; y < 2; y++) {
-                    for (var z = 0; z < 2; z++) {
-                        relativePositions[index] = x * R.particleSize - R.particleSize / 2.0;
-                        relativePositions[index + 1] = y * R.particleSize - R.particleSize / 2.0;
-                        relativePositions[index + 2] = z * R.particleSize - R.particleSize / 2.0;
-                        relativePositions[index + 3] = i;
-                        index += 4;
+        var bodyMass = 0.3;
+        if (R.rigidBodiesEnabled) {
+            var index = 0;
+            for (i = 0; i < R.numBodies; i++) {
+                for (var x = 0; x < 2; x++) {
+                    for (var y = 0; y < 2; y++) {
+                        for (var z = 0; z < 2; z++) {
+                            relativePositions[index] = x * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 1] = y * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 2] = z * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 3] = i;
+                            R.particlePositions[index + 3] = bodyMass;
+                            linearMomenta[index + 3] = particlesPerBody;
+                            index += 4;
+                        }
                     }
                 }
+                relativePositions[index] = 0;
+                relativePositions[index + 1] = 0;
+                relativePositions[index + 2] = 0;
+                relativePositions[index + 3] = i;
+                R.particlePositions[index + 3] = bodyMass;
+                linearMomenta[index + 3] = particlesPerBody;
+                index += 4;
             }
-            relativePositions[index] = 0;
-            relativePositions[index + 1] = 0;
-            relativePositions[index + 2] = 0;
-            relativePositions[index + 3] = i;
-            index += 4;
         }
         R.relativePositions = relativePositions;
 
-        // Linear and angular velocities
-        var linearVelocities = Array(R.numBodies * 4).fill(0.0);
-        linearVelocities[3] = particlesPerBody;
-        R.linearVelocities = linearVelocities;
-        var angularVelocities = Array(R.numBodies * 4).fill(0.0);
-        R.angularVelocities = angularVelocities;
 
-        //Particle to rigid body ids
-        R.testAngle = 0;
     }
 
     var initRender = function() {
@@ -154,22 +170,36 @@
         R["relativePosTex" + id] = createAndBindTexture(R["fbo" + id],
             gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.particleSideLength, R.particleSideLength, R.relativePositions);
 
-        R["bodyFBO" + id] = gl.createFramebuffer();
-        // Rigid Body Data
-        R["bodyPosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyPositions);
+        // Check for framebuffer errors
+        abortIfFramebufferIncomplete(R["fbo" + id]);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL]);
 
-        R["bodyRotTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyOrientations);
+        if (R.rigidBodiesEnabled) {
+            R["bodyFBO" + id] = gl.createFramebuffer();
+            // Rigid Body Data
+            R["bodyPosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
+                gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyPositions);
+            console.log(R.bodyPositions);
 
-        R["linearVelTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.bodySideLength, R.bodySideLength, R.linearVelocities);
+            R["bodyRotTex" + id] = createAndBindTexture(R["bodyFBO" + id],
+                gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyOrientations);
 
-        R["angularVelTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.bodySideLength, R.bodySideLength, R.angularVelocities);
+            R["linearMomentumTex" + id] = createAndBindTexture(R["bodyFBO" + id],
+                gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.bodySideLength, R.bodySideLength, R.linearMomenta);
 
-        // R["relativePosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-        //    gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL, R.particleSideLength, R.particleSideLength, R.relativePositions);
+            R["angularMomentumTex" + id] = createAndBindTexture(R["bodyFBO" + id],
+                gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.bodySideLength, R.bodySideLength, R.angularMomenta);
+
+            abortIfFramebufferIncomplete(R["bodyFBO" + id]);
+            gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+                gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
+                gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
+                gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL,
+                gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL]);
+        }
 
         R["gridFBO" + id] = gl.createFramebuffer();
         R.gridInfo = {};
@@ -195,20 +225,6 @@
         // Add depth and stencil attachments    
         createAndBindDepthStencilBuffer(R["gridFBO" + id], R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth);
 
-        // Check for framebuffer errors
-        abortIfFramebufferIncomplete(R["fbo" + id]);
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL]);
-
-        abortIfFramebufferIncomplete(R["bodyFBO" + id]);
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL,
-            gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL]);
-
         abortIfFramebufferIncomplete(R["gridFBO" + id]);
         //gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
         //    gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
@@ -231,6 +247,7 @@
 				// Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
+                p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
                 p.u_particleSideLength = gl.getUniformLocation(prog, 'u_particleSide');
                 p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
@@ -257,6 +274,8 @@
 
 				// Retrieve the uniform and attribute locations
                 p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+                p.u_cameraPos = gl.getUniformLocation(prog, 'u_cameraPos');
+                p.u_fovy = gl.getUniformLocation(prog, 'u_fovy');
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
@@ -304,7 +323,10 @@
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
                 p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
-                p.u_linearVelTex = gl.getUniformLocation(prog, 'u_linearVelTex');
+                p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
+                p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
+                p.u_particleSideLength = gl.getUniformLocation(prog, 'u_particleSide');
+                p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
@@ -335,6 +357,28 @@
             }
         );
 
+        // Load body update shader
+        loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/object/bodyRK2.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
+                p.u_linearMomentumTex1 = gl.getUniformLocation(prog, 'u_linearMomentumTex1');
+                p.u_forceTex1 = gl.getUniformLocation(prog, 'u_forceTex1');
+                p.u_linearMomentumTex2 = gl.getUniformLocation(prog, 'u_linearMomentumTex2');
+                p.u_forceTex2 = gl.getUniformLocation(prog, 'u_forceTex2');
+                p.u_particleSideLength = gl.getUniformLocation(prog, 'u_particleSide');
+                p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
+                p.u_dt = gl.getUniformLocation(prog, 'u_dt');
+                p.a_position  = gl.getAttribLocation(prog, 'a_position');
+
+                // Save the object into this variable for access later
+                R.progBodyRK2 = p;
+            }
+        );
+
         // Load debug shader for viewing textures
         loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/debug.frag.glsl',
             function(prog) {
@@ -347,6 +391,10 @@
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_gridTex = gl.getUniformLocation(prog, 'u_gridTex');
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
+                p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
+                p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
+                p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
+                p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
@@ -361,12 +409,15 @@
                 var p = { prog: prog };
 
                 // Retrieve the uniform and attribute locations
+                p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
+                p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
+                p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
                 p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
-                p.u_linearVelTex = gl.getUniformLocation(prog, 'u_linearVelTex');
-                p.u_angularVelTex = gl.getUniformLocation(prog, 'u_angularVelTex');
-                p.u_testAngle = gl.getUniformLocation(prog, 'u_testAngle');
+                p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
+                p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
+                p.u_bodySide = gl.getUniformLocation(prog, 'u_bodySide');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later

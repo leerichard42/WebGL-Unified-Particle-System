@@ -5,10 +5,12 @@ precision highp float;
 precision highp int;
 
 uniform mat4 u_cameraMat;
+uniform vec3 u_cameraPos;
+uniform float u_fovy;
 uniform float u_diameter;
 uniform sampler2D u_relPosTex;
 
-varying vec3 v_eyePos;
+varying vec4 v_eyePos;
 varying vec2 v_uv;
 
 void main() {
@@ -20,7 +22,7 @@ void main() {
 
     // The 15.0 is a hacky constant - it should be normal * radius
     // But was unsure about how to translate the radius value from world to eye space
-    vec4 pixelPos = vec4(v_eyePos + normal * u_diameter / 15.0, 1.0);
+    vec4 pixelPos = vec4(v_eyePos.xyz + normal * u_diameter / 15.0, 1.0);
 
     vec4 relPos = texture2D(u_relPosTex, v_uv);
     vec3 color = vec3(0.0, 0.5, 0.7);
