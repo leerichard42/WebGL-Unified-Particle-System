@@ -12,11 +12,14 @@
 			return;
 		}
 
-        // Ping-pong old body state from B to A after computing the particle locations
-        computeBodyParticles(state, R.progSetup, 'B', 'A');
-        if (cfg.pingPong) {
-            pingPongBody('A', 'B');
+        if (R.rigidBodiesEnabled) {
+            // Ping-pong old body state from B to A after computing the particle locations
+            computeBodyParticles(state, R.progSetup, 'B', 'A');
+            if (cfg.pingPong) {
+                pingPongBody('A', 'B');
+            }
         }
+
 
         // RK2 Integration
         //pos in A, vel_1 in A
@@ -27,13 +30,14 @@
         calculateForces(state, R.progPhysics, 'A', 'RK2_B');
         updateEuler(state, 'A', 'RK2_B', 'RK2_A');
         //updateBodyEuler(state, 'A', 'RK2_B', 'RK2_A');
+        //computeBodyParticles
         calculateForces(state, R.progPhysics, 'RK2_A', 'A');
         updateParticlesRK2(state, R.progRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
         //updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
 
-        //updateEuler(state, 'A', 'RK2_B', 'B');
-        updateBodyEuler(state, 'A', 'RK2_B', 'B');
-
+        if (R.rigidBodiesEnabled) {
+            updateBodyEuler(state, 'A', 'RK2_B', 'B');
+        }
 
         // Render the particles
         renderParticles(state, R.progParticle);
@@ -53,13 +57,10 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
-        gl.uniform1f(prog.u_testAngle, R.testAngle);
-        R.testAngle++;
-
         bindTextures(prog, [prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_relPosTex,
-            prog.u_linearVelTex, prog.u_angularMomentumTex],
+            prog.u_linearMomentumTex, prog.u_angularMomentumTex],
             [R["bodyPosTex" + source], R["bodyRotTex" + source], R["relativePosTex" + source],
-                R["linearVelTex" + source], R["angularMomentumTex" + source]]);
+                R["linearMomentumTex" + source], R["angularMomentumTex" + source]]);
 
         renderFullScreenQuad(prog);
     }
@@ -153,9 +154,9 @@
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_relPosTex,
-            prog.u_linearVelTex, prog.u_angularMomentumTex],
+            prog.u_linearMomentumTex, prog.u_angularMomentumTex],
             [R["particlePosTex" + stateSource], R["particleVelTex" + stateSource], R["forceTex" + forceSource],
-                R["relativePosTex" + stateSource], R["linearVelTex" + stateSource], R["angularMomentumTex" + stateSource]]);
+                R["relativePosTex" + stateSource], R["linearMomentumTex" + stateSource], R["angularMomentumTex" + stateSource]]);
 
         renderFullScreenQuad(prog);
 	}
@@ -176,9 +177,9 @@
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_bodyPosTex,
-            prog.u_bodyRotTex, prog.u_linearVelTex, prog.u_angularMomentumTex],
+            prog.u_bodyRotTex, prog.u_linearMomentumTex, prog.u_angularMomentumTex],
             [R["particlePosTex" + stateSource], R["particleVelTex" + stateSource], R["forceTex" + forceSource],
-                R["bodyPosTex" + stateSource], R["bodyRotTex" + stateSource], R["linearVelTex" + stateSource],
+                R["bodyPosTex" + stateSource], R["bodyRotTex" + stateSource], R["linearMomentumTex" + stateSource],
                 R["angularMomentumTex" + stateSource]]);
 
         renderFullScreenQuad(prog);
@@ -219,10 +220,10 @@
 
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
-        bindTextures(prog, [prog.u_bodyPosTex, prog.u_linearVelTex1, prog.u_forceTex1, prog.u_linearVelTex2,
+        bindTextures(prog, [prog.u_bodyPosTex, prog.u_linearMomentumTex1, prog.u_forceTex1, prog.u_linearMomentumTex2,
                 prog.u_forceTex2],
-            [R["bodyPosTex" + pos], R["linearVelTex" + vel_1], R["forceTex" + force_1],
-                R["linearVelTex" + vel_2], R["forceTex" + force_2]]);
+            [R["bodyPosTex" + pos], R["linearMomentumTex" + vel_1], R["forceTex" + force_1],
+                R["linearMomentumTex" + vel_2], R["forceTex" + force_2]]);
 
         renderFullScreenQuad(prog);
         gl.enable(gl.BLEND);
@@ -243,14 +244,16 @@
         gl.uniform1i(prog.u_bodySideLength, R.bodySideLength);
         gl.uniform1f(prog.u_diameter, R.particleSize);
         gl.uniform1f(prog.u_nearPlaneHeight, R.nearPlaneHeight);
+        gl.uniform3f(prog.u_cameraPos, state.cameraPos.x, state.cameraPos.y, state.cameraPos.z);
+        gl.uniform1f(prog.u_fovy, R.fovy);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
         gl.enableVertexAttribArray(prog.a_idx);
         gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
 
         // Bind position texture
-        bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_relPosTex, prog.u_bodyPosTex],
-            [R.particlePosTexA, R.particleVelTexA, R.relativePosTexA, R.bodyPosTexA]);
+        bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_relPosTex],
+            [R.particlePosTexA, R.particleVelTexA, R.relativePosTexA]);
 
         gl.drawArrays(gl.POINTS, 0, R.numParticles);
     }
@@ -286,7 +289,7 @@
         swap('bodyFBO', a, b);
         swap('bodyPosTex', a, b);
         swap('bodyRotTex', a, b);
-        swap('linearVelTex', a, b);
+        swap('linearMomentumTex', a, b);
         swap('angularMomentumTex', a, b);
     }
 
@@ -315,9 +318,12 @@
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
             bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_gridTex,
-                prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_linearVelTex, prog.u_angularMomentumTex],
+                prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_linearMomentumTex,
+                prog.u_angularMomentumTex,
+                prog.u_relPosTex],
                 [R.particlePosTexA, R.particleVelTexA, R.forceTexRK2_B, R.gridTexA,
-                    R.bodyPosTexA, R.bodyRotTexA, R.linearVelTexA, R.angularMomentumTexA]);
+                    R.bodyPosTexA, R.bodyRotTexA, R.linearMomentumTexA, R.angularMomentumTexA,
+                    R.relativePosTexA]);
             renderFullScreenQuad(R.progDebug);
         }
     }

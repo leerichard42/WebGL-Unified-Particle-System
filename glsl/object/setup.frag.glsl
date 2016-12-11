@@ -9,7 +9,7 @@ precision highp int;
 uniform sampler2D u_bodyPosTex;
 uniform sampler2D u_bodyRotTex;
 uniform sampler2D u_relPosTex;
-uniform sampler2D u_linearVelTex;
+uniform sampler2D u_linearMomentumTex;
 uniform sampler2D u_angularMomentumTex;
 uniform float u_testAngle;
 
@@ -49,13 +49,16 @@ void main() {
     if (index > -1) {
         vec4 bodyPos = texture2D(u_bodyPosTex, v_uv);
         vec4 bodyRot = texture2D(u_bodyRotTex, v_uv);
-        vec3 linearVel = texture2D(u_linearVelTex, v_uv).xyz;
+        vec3 linearMomentum = texture2D(u_linearMomentumTex, v_uv).xyz;
+        float mass = 0.2;
+        float numParticles = texture2D(u_linearMomentumTex, v_uv).w;
+        vec3 linearVel = linearMomentum / (numParticles * mass);
         vec3 angularMomentum = texture2D(u_angularMomentumTex, v_uv).xyz;
 
         vec3 currRelPos = rotate_pos(initRelPos.xyz, bodyRot);
         vec3 pos = bodyPos.xyz + currRelPos;
         vec3 vel = linearVel + cross(angularMomentum, currRelPos);
         gl_FragData[0] = vec4(pos, 1.0);
-        gl_FragData[1] = vec4(linearVel, 1.0);
+        gl_FragData[1] = vec4(vel, 1.0);
     }
 }

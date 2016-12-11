@@ -5,9 +5,9 @@ precision highp float;
 precision highp int;
 
 uniform sampler2D u_bodyPosTex;
-uniform sampler2D u_linearVelTex1;
+uniform sampler2D u_linearMomentumTex1;
 uniform sampler2D u_forceTex1;
-uniform sampler2D u_linearVelTex2;
+uniform sampler2D u_linearMomentumTex2;
 uniform sampler2D u_forceTex2;
 uniform int u_particleSide;
 uniform float u_diameter;
@@ -23,11 +23,13 @@ vec2 getUV(int idx, int side) {
 
 void main() {
     float startIndex = texture2D(u_bodyPosTex, v_uv).w;
-    float numParticles = texture2D(u_linearVelTex1, v_uv).w;
+    float numParticles = texture2D(u_linearMomentumTex1, v_uv).w;
 
     vec3 bodyPos = texture2D(u_bodyPosTex, v_uv).xyz;
-    vec3 linearVel1 = texture2D(u_linearVelTex1, v_uv).xyz;
-    vec3 linearVel2 = texture2D(u_linearVelTex2, v_uv).xyz;
+    vec3 linearMomentum1 = texture2D(u_linearMomentumTex1, v_uv).xyz;
+    vec3 linearMomentum2 = texture2D(u_linearMomentumTex2, v_uv).xyz;
+    vec3 linearVel1 = linearMomentum1 / numParticles;
+    vec3 linearVel2 = linearMomentum2 / numParticles;
 
     vec3 force_1 = vec3(0.0);
     vec3 force_2 = vec3(0.0);

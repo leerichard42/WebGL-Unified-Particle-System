@@ -23,6 +23,11 @@ vec2 getUV(int idx, int side) {
 void main() {
     int index = int(texture2D(u_relPosTex, v_uv).w);
 
+    float mass = 1.0;
+    if (index > -1) {
+        mass = 0.2;
+    }
+
     // Spring coefficient
     float k = 400.0;
     float bounds_k = 600.0;
@@ -31,7 +36,7 @@ void main() {
     float n = 4.0;
     float bounds_n = 20.0;
     // Friction coefficient
-    float u = 1.0;
+    float u = 0.4;
 
     vec3 spring_total = vec3(0.0);
     vec3 damping_total = vec3(0.0);
@@ -62,36 +67,28 @@ void main() {
 
 
     vec3 force = spring_total + damping_total;
-    force.y -= 9.8;
+    force.y -= 9.8 * mass;
 
     //Predict next position
     vec3 newPos = pos + vel * u_dt;
 
     //Boundary conditions
-    bool applyFriction = false;
+    vec3 dir = normalize(vel);
+//    bool applyFriction = false;
     if (newPos.y < u_diameter / 2.0) {
-        // Negate gravity if contacting ground
-//        if (index == -1) {
-            force.y += 9.8;
-            force.y += bounds_k * (u_diameter / 2.0 - newPos.y) * 1.0;
-            force.y -= bounds_n * vel.y;
-//        }
-        applyFriction = true;
+        force.y += 9.8 * mass;
+        force.y += bounds_k * (u_diameter / 2.0 - newPos.y) * 1.0;
+        force.y -= bounds_n * vel.y;
+        //friction = u*n = u*m*g opposite the direction of movement along the ground
+        force += -1.0 * normalize(vec3(dir.x, 0, dir.z)) * u * 9.8 * mass;
     }
     if (abs(newPos.x) > u_bound) {
         force.x += bounds_k * (u_bound - abs(newPos.x)) * sign(newPos.x);
         force.x -= bounds_n * vel.x;
-        applyFriction = true;
     }
     if (abs(newPos.z) > u_bound) {
         force.z += bounds_k * (u_bound - abs(newPos.z)) * sign(newPos.z);
         force.z -= bounds_n * vel.z;
-        applyFriction = true;
-    }
-    //Apply friction if contacting the boundary
-    vec3 dir = normalize(vel);
-    if(applyFriction && length(dir) > 0.0) {
-        force += -1.0 * dir * u;
     }
 
     gl_FragData[2] = vec4(force, 1.0); //force output

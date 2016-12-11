@@ -13,11 +13,12 @@ var width, height;
         camera.updateMatrixWorld();
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);
         cameraMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-        
-		R.particleRender({
+
+        R.particleRender({
             models: models,
 			cameraMat: cameraMat,
-            camera: camera
+            camera: camera,
+            cameraPos: camera.getWorldPosition()
 		});
     };
 
@@ -98,15 +99,15 @@ var width, height;
 
         width = canvas.width;
         height = canvas.height;
-        var fovy = 45;
+        R.fovy = 45;
         camera = new THREE.PerspectiveCamera(
-            fovy,             // Field of view
+            R.fovy,             // Field of view
             width / height, // Aspect ratio
             0.1,            // Near plane
             100             // Far plane
         );
         camera.position.set(-3, 3, -3);
-        R.nearPlaneHeight = height / (2*Math.tan(0.5*fovy*Math.PI/180.0));
+        R.nearPlaneHeight = height / (2*Math.tan(0.5* R.fovy*Math.PI/180.0));
         //console.log(nearPlaneHeight);
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);

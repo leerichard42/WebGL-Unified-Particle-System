@@ -11,7 +11,7 @@ uniform sampler2D u_velTex;
 uniform sampler2D u_forceTex;
 uniform sampler2D u_bodyPosTex;
 uniform sampler2D u_bodyRotTex;
-uniform sampler2D u_linearVelTex;
+uniform sampler2D u_linearMomentumTex;
 uniform sampler2D u_angularMomentumTex;
 uniform int u_particleSide;
 uniform float u_diameter;
@@ -53,18 +53,13 @@ mat3 transpose(mat3 m) {
 void main() {
     vec3 bodyPos = texture2D(u_bodyPosTex, v_uv).xyz;
     vec4 bodyRot = texture2D(u_bodyRotTex, v_uv);
-    vec3 linearVel = texture2D(u_linearVelTex, v_uv).xyz;
+    vec3 linearMomentum = texture2D(u_linearMomentumTex, v_uv).xyz;
     vec3 angularMomentum = texture2D(u_angularMomentumTex, v_uv).xyz;
     float startIndex = texture2D(u_bodyPosTex, v_uv).w;
-    float numParticles = texture2D(u_linearVelTex, v_uv).w;
+    float numParticles = texture2D(u_linearMomentumTex, v_uv).w;
 
-    vec3 linearMomentum = linearVel * numParticles;
-    bool groundContact = false;
-    float minContact = 0.0;
     vec3 totalForce = vec3(0.0);
     vec3 totalTorque = vec3(0.0);
-    vec3 newAngularMomentum = angularMomentum;
-
     for (int i = 0; i < 1048576; i++) {
         if (i < int(startIndex) || i == int(startIndex + numParticles))
             break;
@@ -73,35 +68,20 @@ void main() {
         vec3 pos = texture2D(u_posTex, uv).xyz;
         vec3 vel = texture2D(u_velTex, uv).xyz;
         vec3 force = texture2D(u_forceTex, uv).xyz;
-
-        if (pos.y < u_diameter / 2.0) {
-            groundContact = true;
-            if (pos.y < minContact) {
-                minContact = pos.y;
-            }
-        }
-
         totalForce += force;
         vec3 rel_pos = pos - bodyPos;
         totalTorque += cross(rel_pos, force);
     }
 
-//    float u = 1.0;
-//    if (groundContact) {
-//        totalForce.y += 9.8 * numParticles;
-//        totalForce.y += 600.0 * (u_diameter / 2.0 - minContact) * numParticles;
-//        totalForce.y -= 40.0 * linearVel.y * numParticles;
-//        vec3 dir = normalize(linearVel);
-//        totalForce += -1.0 * dir * u;
-//    }
-
+    float mass = 0.2;
     //update position
+    vec3 linearVel = linearMomentum / (numParticles * mass);
     vec3 newPos = bodyPos + linearVel * u_dt;
     gl_FragData[0] = vec4(newPos, startIndex);
 
     //update rotation
     //use cube moment of inertia for now - 6/(m*s^2)
-    float inverseMomentComponent = 6.0/(numParticles * (4.0 * u_diameter * u_diameter));
+    float inverseMomentComponent = 6.0/((numParticles * mass) * (4.0 * u_diameter * u_diameter));
     mat3 inverseMomentOfInertia = mat3(
         inverseMomentComponent, 0.0, 0.0,
         0.0, inverseMomentComponent, 0.0,
@@ -127,10 +107,9 @@ void main() {
 
     //update linear velocity
     linearMomentum += totalForce * u_dt;
-    vec3 newVel = linearMomentum / numParticles;
-    gl_FragData[2] = vec4(newVel, numParticles);
+    gl_FragData[2] = vec4(linearMomentum, numParticles);
 
     //update angular momentum
-    newAngularMomentum += totalTorque * u_dt;
-    gl_FragData[3] = vec4(newAngularMomentum, 0.0);
+    angularMomentum += totalTorque * u_dt;
+    gl_FragData[3] = vec4(angularMomentum, 0.0);
 }

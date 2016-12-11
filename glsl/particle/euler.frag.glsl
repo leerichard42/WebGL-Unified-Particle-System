@@ -18,9 +18,10 @@ void main() {
         vec3 pos = texture2D(u_posTex, v_uv).xyz;
         vec3 vel = texture2D(u_velTex, v_uv).xyz;
         vec3 force = texture2D(u_forceTex, v_uv).xyz;
+        float mass = 1.0;
 
         vec3 newPos = pos + vel * u_dt;
-        vec3 newVel = vel + force * u_dt;
+        vec3 newVel = vel + (force / mass) * u_dt;
 
         //Update position and velocity
         gl_FragData[0] = vec4(newPos, 1.0);
