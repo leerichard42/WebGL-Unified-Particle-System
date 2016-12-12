@@ -27,7 +27,7 @@ vec2 uvFrom3D(vec3 pos) {
 
     float v = pos.y + float(u_gridNumCellsPerSide) * floor(pos.x / float(u_gridTexTileDimensions));
 
-    return vec2(u, v) / float(u_gridTexSize) * .5;
+    return vec2(u, v) / float(u_gridTexSize);
 }
 
 vec2 getUV(int idx, int side) {
@@ -86,6 +86,7 @@ void main() {
     //////////
     // Loop through 27 cells in grid
     vec3 voxelIndex = (vec3(pos) - vec3(-u_gridSideLength, -u_gridSideLength, -u_gridSideLength)) / u_diameter;
+    voxelIndex = floor(voxelIndex);
     for (int i = -1; i < 2; i++) {
         for (int i2 = -1; i2 < 2; i2++) {
             for (int i3 = -1; i3 < 2; i3++) {
@@ -105,8 +106,14 @@ void main() {
                     if (p_idx[c] == 0.) {
                         continue;
                     }
-                    vec2 uv = getUV(int(p_idx[c]), u_particleSide);
- 
+                    vec2 uv;
+                    // Kind of hacky - setting particle with index 0.0 to 0.5
+                    if (p_idx[c] == .5) {
+                        uv = getUV(0, u_particleSide);
+                    } else {
+                        uv = getUV(int(p_idx[c]), u_particleSide);
+                    }
+
                     vec3 p_pos = texture2D(u_posTex, uv).xyz;
                     if (length(p_pos - pos) < 0.001)
                         continue;

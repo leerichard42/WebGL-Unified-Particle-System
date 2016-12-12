@@ -32,7 +32,7 @@
 
             //updateBodyEuler(state, 'A', 'RK2_B', 'RK2_A');
             //computeBodyParticles
-
+            
             generateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
             calculateForces(state, R.progPhysics, 'RK2_A', 'A');
             updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');

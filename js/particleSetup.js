@@ -74,7 +74,7 @@
     }
 
     var initRigidBodyData = function() {
-        R.rigidBodiesEnabled = true;
+        R.rigidBodiesEnabled = false;
         var exp = 2;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
@@ -203,9 +203,9 @@
 
         R["gridFBO" + id] = gl.createFramebuffer();
         R.gridInfo = {};
-
+        debugger;
         // Calculate gridTex size
-        R.gridInfo.numCellsPerSide = Math.ceil((R.gridBound) * 2 / R.particleSize);
+        R.gridInfo.numCellsPerSide = Math.ceil((R.gridBound) * 4 / R.particleSize);
 
         // gridTexTileDimensions are the dimensions of the flattened out grid texture in terms of individual
         // 2-dimensional "slices." This is necessary for recreating the 3D texture in the shaders

@@ -19,7 +19,7 @@ vec2 uvFrom3D(vec3 pos) {
 
     float v = pos.y + float(u_gridNumCellsPerSide) * floor(pos.x / float(u_gridTexTileDimensions));
 
-    return vec2(u, v) / float(u_gridTexSize) - vec2(1.);
+    return (vec2(u, v) / float(u_gridTexSize)) * 2. - vec2(1.);
 }
 
 vec2 getUV(int idx, int side) {
@@ -34,7 +34,7 @@ void main() {
     vec4 pos = texture2D(u_posTex, getUV(int(a_idx), u_posTexSize));
 
     vec3 voxelIndex = (vec3(pos) - vec3(-u_gridSideLength, -u_gridSideLength, -u_gridSideLength)) / u_particleDiameter;
-    
+    voxelIndex = floor(voxelIndex);
     vec2 gridUV = uvFrom3D(voxelIndex);
     
     gl_Position = vec4(gridUV, a_idx * .00001, 1);
