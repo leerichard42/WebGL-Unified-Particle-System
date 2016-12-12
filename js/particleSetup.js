@@ -70,7 +70,7 @@
         R.timeStep = 0.01;
         R.particleSize = 0.15;
         R.bound = .5;
-        R.gridBound = R.bound + .5;
+        R.gridBound = R.bound + .2;
     }
 
     var initRigidBodyData = function() {
@@ -204,8 +204,9 @@
         R["gridFBO" + id] = gl.createFramebuffer();
         R.gridInfo = {};
         debugger;
+        R.gridInfo.gridCellSize = R.particleSize * 1.;
         // Calculate gridTex size
-        R.gridInfo.numCellsPerSide = Math.ceil((R.gridBound) * 4 / R.particleSize);
+        R.gridInfo.numCellsPerSide = Math.ceil((R.gridBound) * 2 / R.gridInfo.gridCellSize);
 
         // gridTexTileDimensions are the dimensions of the flattened out grid texture in terms of individual
         // 2-dimensional "slices." This is necessary for recreating the 3D texture in the shaders
@@ -260,8 +261,9 @@
                 p.u_gridNumCellsPerSide = gl.getUniformLocation(prog, 'u_gridNumCellsPerSide');
                 p.u_gridTexSize = gl.getUniformLocation(prog, 'u_gridTexSize');
                 p.u_gridTexTileDimensions = gl.getUniformLocation(prog, 'u_gridTexTileDimensions');
-
-				// Save the object into this variable for access later
+                p.u_gridCellSize = gl.getUniformLocation(prog, 'u_gridCellSize');
+				
+                // Save the object into this variable for access later
 				R.progPhysics = p;
 			}
         );
@@ -455,7 +457,7 @@
                 p.u_gridNumCellsPerSide = gl.getUniformLocation(prog, 'u_gridNumCellsPerSide');
                 p.u_gridTexSize = gl.getUniformLocation(prog, 'u_gridTexSize');
                 p.u_gridTexTileDimensions = gl.getUniformLocation(prog, 'u_gridTexTileDimensions'); 
-                p.u_particleDiameter = gl.getUniformLocation(prog, 'u_particleDiameter');
+                p.u_gridCellSize = gl.getUniformLocation(prog, 'u_gridCellSize');
                 p.a_idx = gl.getAttribLocation(prog, 'a_idx');
 
                 // Save the object into this variable for access later

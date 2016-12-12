@@ -15,19 +15,20 @@ uniform float u_dt;
 uniform float u_bound;
 
 // Grid uniforms
-uniform int u_gridSideLength;
+uniform float u_gridSideLength;
 uniform int u_gridNumCellsPerSide;
 uniform int u_gridTexSize;
 uniform int u_gridTexTileDimensions;
+uniform float u_gridCellSize;
 
 varying vec2 v_uv;
 
 vec2 uvFrom3D(vec3 pos) {
     float u = pos.x + float(u_gridNumCellsPerSide) * (pos.z - float(u_gridTexTileDimensions) * floor(pos.z / float(u_gridTexTileDimensions)));
 
-    float v = pos.y + float(u_gridNumCellsPerSide) * floor(pos.x / float(u_gridTexTileDimensions));
+    float v = pos.y + float(u_gridNumCellsPerSide) * floor(pos.z / float(u_gridTexTileDimensions));
 
-    return vec2(u, v) / float(u_gridTexSize);
+    return (floor(vec2(u, v)) + .5) / float(u_gridTexSize);
 }
 
 vec2 getUV(int idx, int side) {
@@ -46,7 +47,7 @@ void main() {
 
     // Spring coefficient
     float k = 400.0;
-    float bounds_k = 600.0;
+    float bounds_k = 2000.0;
 
     // Damping coefficient
     float n = 4.0;
@@ -85,7 +86,7 @@ void main() {
     // GRID //
     //////////
     // Loop through 27 cells in grid
-    vec3 voxelIndex = (vec3(pos) - vec3(-u_gridSideLength, -u_gridSideLength, -u_gridSideLength)) / u_diameter;
+    vec3 voxelIndex = (vec3(pos) - vec3(-u_gridSideLength / 2., -u_gridSideLength / 2., -u_gridSideLength / 2.)) / u_gridCellSize;
     voxelIndex = floor(voxelIndex);
     for (int i = -1; i < 2; i++) {
         for (int i2 = -1; i2 < 2; i2++) {
@@ -115,7 +116,7 @@ void main() {
                     }
 
                     vec3 p_pos = texture2D(u_posTex, uv).xyz;
-                    if (length(p_pos - pos) < 0.001)
+                    if (length(p_pos - pos) < 0.0001)
                         continue;
                     vec3 p_vel = texture2D(u_velTex, uv).xyz;
 

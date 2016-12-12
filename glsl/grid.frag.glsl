@@ -11,5 +11,5 @@ void main() {
     if (idx == 0.0) {
         idx = .5;
     }
-    gl_FragData[0] = vec4(v_idx, v_idx, v_idx, v_idx);
+    gl_FragData[0] = vec4(idx, idx, idx, idx);
 }

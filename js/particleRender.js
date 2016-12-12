@@ -84,6 +84,7 @@
     var generateGrid = function(state, prog, source, target) {
         gl.useProgram(prog.prog);
         gl.disable(gl.BLEND);
+        gl.clearColor(0, 0, 0, 0);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["gridFBO" + target]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -94,12 +95,12 @@
         bindTextures(prog, [prog.u_posTex], [R["particlePosTex" + source]]);
         
         gl.uniform1i(prog.u_posTexSize, R.particleSideLength);
-        gl.uniform1i(prog.u_gridSideLength, R.gridBound); // WARNING: R.bound + constant
+        gl.uniform1f(prog.u_gridSideLength, R.gridBound * 2.); // WARNING: R.bound + constant
         gl.uniform1i(prog.u_gridNumCellsPerSide, R.gridInfo.numCellsPerSide);
         gl.uniform1i(prog.u_gridTexSize, R.gridInfo.gridTexWidth);
         gl.uniform1i(prog.u_gridTexTileDimensions, R.gridInfo.gridTexTileDimensions);
-        gl.uniform1f(prog.u_particleDiameter, R.particleSize);
-
+        gl.uniform1f(prog.u_gridCellSize, R.gridInfo.gridCellSize);
+        
         gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
         gl.enableVertexAttribArray(prog.a_idx);
         gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
@@ -135,6 +136,8 @@
         gl.depthFunc(gl.LESS);
         gl.colorMask(true, true, true, true);
         gl.enable(gl.BLEND);
+        gl.clearColor(.8, .8, .8, 1);
+
     }
     
     // Calculate forces on all the particles from collisions, gravity, and boundaries
@@ -152,11 +155,11 @@
         gl.uniform1f(prog.u_bound, R.bound);
 
         // Fill in grid uniforms
-        gl.uniform1i(prog.u_gridSideLength, R.gridBound); // WARNING: R.bound + constant
+        gl.uniform1f(prog.u_gridSideLength, R.gridBound * 2.); // WARNING: R.bound + constant
         gl.uniform1i(prog.u_gridNumCellsPerSide, R.gridInfo.numCellsPerSide);
         gl.uniform1i(prog.u_gridTexSize, R.gridInfo.gridTexWidth);
         gl.uniform1i(prog.u_gridTexTileDimensions, R.gridInfo.gridTexTileDimensions);
-
+        gl.uniform1f(prog.u_gridCellSize, R.gridInfo.gridCellSize);
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
 
