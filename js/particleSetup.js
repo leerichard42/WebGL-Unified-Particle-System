@@ -15,7 +15,7 @@
     };
 
     var initParticleData = function() {
-        var exp = 8;
+        var exp = 10;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -28,11 +28,13 @@
             min: 1,
             max: 2
         };
+
+        var particleMass = 1.0;
         for (var i = 0; i < R.numParticles; i++) {
-            positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/,
-                            Math.random() * (gridBounds.max - gridBounds.min) + gridBounds.min,
-                            Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0/* + gridBounds.min*/,
-                1.0);
+            positions.push( Math.random() * 0.5 - 0.25,
+                            Math.random() * 2.0 + 1.0,
+                            Math.random() * 0.5 - 0.25,
+                particleMass);
         }
         R.particlePositions = positions;
 
@@ -69,7 +71,7 @@
 
         R.timeStep = 0.01;
         R.particleSize = 0.15;
-        R.bound = .5;
+        R.bound = 1.0;
         R.gridBound = R.bound + .2;
     }
 
@@ -94,7 +96,7 @@
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
             positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
-                2.4 + i/2.0,
+                4 + i/2.0,
                 Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
                 particlesPerBody * i);
         }
