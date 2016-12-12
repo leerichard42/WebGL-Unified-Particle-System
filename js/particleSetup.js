@@ -74,7 +74,7 @@
     }
 
     var initRigidBodyData = function() {
-        R.rigidBodiesEnabled = false;
+        R.rigidBodiesEnabled = true;
         var exp = 2;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
@@ -142,8 +142,6 @@
             }
         }
         R.relativePositions = relativePositions;
-
-
     }
 
     var initRender = function() {

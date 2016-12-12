@@ -28,7 +28,7 @@ void main() {
         vec3 newVel = vel + (force / mass) * u_dt;
 
         //Update position and velocity
-        gl_FragData[0] = vec4(pos, mass);
+        gl_FragData[0] = vec4(newPos, mass);
         gl_FragData[1] = vec4(newVel, 1.0);
         gl_FragData[2] = forceTexel;
         gl_FragData[3] = relPosTexel;
