@@ -46,7 +46,7 @@ void main() {
     float mass = posTexel.w;
 
     // Spring coefficient
-    float k = 400.0;
+    float k = 2000.0;
     float bounds_k = 2000.0;
 
     // Damping coefficient
