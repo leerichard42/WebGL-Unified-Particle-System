@@ -12,6 +12,9 @@
         setupBuffers('RK2_A');
         setupBuffers('RK2_B');
         setupBuffers('B');
+
+        generateGrid('A');
+        generateGrid('B');
     };
 
     var initParticleData = function() {
@@ -198,24 +201,24 @@
                 gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL,
                 gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL]);
         }
-
+    }
+    
+    var generateGrid = function(id) {
         R["gridFBO" + id] = gl.createFramebuffer();
         R.gridInfo = {};
-        debugger;
+
         R.gridInfo.gridCellSize = R.particleSize * 1.;
-        // Calculate gridTex size
         R.gridInfo.numCellsPerSide = Math.ceil((R.gridBound) * 2 / R.gridInfo.gridCellSize);
 
         // gridTexTileDimensions are the dimensions of the flattened out grid texture in terms of individual
         // 2-dimensional "slices." This is necessary for recreating the 3D texture in the shaders
         R.gridInfo.gridTexTileDimensions = Math.ceil(Math.sqrt(R.gridInfo.numCellsPerSide));
-
         R.gridInfo.gridTexWidth = R.gridInfo.gridTexTileDimensions * R.gridInfo.numCellsPerSide;
         
         // Initialize grid values to 0
         var gridVals = [];
         for (var i = 0; i < Math.pow(R.gridInfo.gridTexWidth, 2.); i++) {
-           gridVals.push(0.0, 0.0, 0.0, 1.0);
+           gridVals.push(0.0, 0.0, 0.0, 0.0);
         }
 
         R["gridTex" + id] = createAndBindTexture(R["gridFBO" + id],
@@ -225,11 +228,6 @@
         createAndBindDepthStencilBuffer(R["gridFBO" + id], R.gridInfo.gridTexWidth, R.gridInfo.gridTexWidth);
 
         abortIfFramebufferIncomplete(R["gridFBO" + id]);
-        //gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
-        //    gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
-        //    gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
-        //    gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL,
-        //    gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL]);
     }
 
     /**

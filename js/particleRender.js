@@ -26,15 +26,15 @@
 
 
         if (cfg.pingPong) {
-            generateGrid(state, R.progGrid, 'A', 'A');
-            calculateForces(state, R.progPhysics, 'A', 'RK2_B');
+            updateGrid(state, R.progGrid, 'A', 'A');
+            calculateForces(state, R.progPhysics, 'A', 'A', 'RK2_B');
             updateEuler(state, 'A', 'RK2_B', 'RK2_A');
 
             //updateBodyEuler(state, 'A', 'RK2_B', 'RK2_A');
             //computeBodyParticles
             
-            generateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
-            calculateForces(state, R.progPhysics, 'RK2_A', 'A');
+            updateGrid(state, R.progGrid, 'B', 'RK2_A');
+            calculateForces(state, R.progPhysics, 'RK2_A', 'B', 'A');
             updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
 
             //updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
@@ -81,7 +81,7 @@
         gl.enable(gl.BLEND);
     }
 
-    var generateGrid = function(state, prog, source, target) {
+    var updateGrid = function(state, prog, source, target) {
         gl.useProgram(prog.prog);
         gl.disable(gl.BLEND);
         gl.clearColor(0, 0, 0, 0);
@@ -141,7 +141,7 @@
     }
     
     // Calculate forces on all the particles from collisions, gravity, and boundaries
-    var calculateForces = function(state, prog, source, target) {
+    var calculateForces = function(state, prog, source, gridSource, target) {
 		gl.useProgram(prog.prog);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
@@ -164,7 +164,7 @@
         // the same indices in the following arrays
 
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_relPosTex, prog.u_gridTex],
-            [R["particlePosTex" + source], R["particleVelTex" + source], R["relativePosTex" + source], R["gridTex" + source]]);
+            [R["particlePosTex" + source], R["particleVelTex" + source], R["relativePosTex" + source], R["gridTex" + gridSource]]);
 
         renderFullScreenQuad(prog);
         gl.enable(gl.BLEND);
