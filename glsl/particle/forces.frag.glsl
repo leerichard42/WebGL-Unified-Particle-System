@@ -50,7 +50,7 @@ void main() {
     float bounds_k = 2000.0;
 
     // Damping coefficient
-    float n = 4.0;
+    float n = 10.0;
     float bounds_n = 40.0;
     // Friction coefficient
     float u = 0.4;
@@ -101,7 +101,7 @@ void main() {
                 }
 
                 vec2 neighborGridUV = uvFrom3D(neighborVoxelIndex);
-                
+
                 vec4 p_idx = texture2D(u_gridTex, neighborGridUV);
                 for (int c = 0; c < 4; c++) {
                     if (p_idx[c] == 0.) {
