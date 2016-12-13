@@ -71,13 +71,13 @@
         R.indices = indexBuffer;
 
         R.timeStep = 0.01;
-        R.particleSize = 0.15;
-        R.bound = .5;
-        R.gridBound = R.bound + .2;
+        R.particleSize = .1;
+        R.bound = 1.5;
+        R.gridBound = R.bound * 1.1;
     }
 
     var initRigidBodyData = function() {
-        R.rigidBodiesEnabled = true;
+        R.rigidBodiesEnabled = false;
         var exp = 2;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
@@ -202,12 +202,12 @@
                 gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL]);
         }
     }
-    
+
     var generateGrid = function(id) {
         R["gridFBO" + id] = gl.createFramebuffer();
         R.gridInfo = {};
 
-        R.gridInfo.gridCellSize = R.particleSize * 1.;
+        R.gridInfo.gridCellSize = R.particleSize;
         R.gridInfo.numCellsPerSide = Math.ceil((R.gridBound) * 2 / R.gridInfo.gridCellSize);
 
         // gridTexTileDimensions are the dimensions of the flattened out grid texture in terms of individual
@@ -230,6 +230,24 @@
         abortIfFramebufferIncomplete(R["gridFBO" + id]);
     }
 
+    var generateParticlesFromMesh = function(id, prog, model, gridSideLength) {
+        R["meshParticlesFBO" + id] = gl.createFramebuffer();
+        var gridTexSideLength = 
+
+        R["meshParticlesTex" + id] = createAndBindTexture(R["meshParticlesFBO" + id],
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gridSideLength, gridSideLength, null);
+
+        createAndBindDepthStencilBuffer(R["meshParticlesFBO" + id], gridSideLength, gridSideLength);
+        
+        // Draw model 2x on two textures. Once with near, once with far
+        // Feed those textures (and array of uniform grid) into vertex shader
+        // Output 1s or 0s into 3D texture
+        
+        //readyModelForDraw(prog, model);
+
+
+        //gl.drawElements(model.gltf.mode, model.gltf.indices.length, model.gltf.indicesComponentType, 0);
+    }
     /**
      * Loads all of the shader programs used in the pipeline.
      */

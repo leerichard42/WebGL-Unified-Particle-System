@@ -80,19 +80,19 @@ window.loadShaderProgram = (function() {
 window.readyModelForDraw = function(prog, m) {
     gl.useProgram(prog.prog);
 
-    if (m.colmap) {
-        gl.activeTexture(gl.TEXTURE3);
-        gl.bindTexture(gl.TEXTURE_2D, m.colmap);
-        gl.uniform1i(prog.u_colmap, 3);
-    }
+    // if (m.colmap) {
+    //     gl.activeTexture(gl.TEXTURE3);
+    //     gl.bindTexture(gl.TEXTURE_2D, m.colmap);
+    //     gl.uniform1i(prog.u_colmap, 3);
+    // }
 
-    if (m.normap) {
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, m.normap);
-        gl.uniform1i(prog.u_normap, 4);
-    }
+    // if (m.normap) {
+    //     gl.activeTexture(gl.TEXTURE4);
+    //     gl.bindTexture(gl.TEXTURE_2D, m.normap);
+    //     gl.uniform1i(prog.u_normap, 4);
+    // }
 
-    gl.uniform1f(prog.u_specmap, m.specExp);
+    //gl.uniform1f(prog.u_specmap, m.specExp);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, m.attributes);
     
