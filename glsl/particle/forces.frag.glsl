@@ -46,7 +46,7 @@ void main() {
     float mass = posTexel.w;
 
     // Spring coefficient
-    float k = 4000.0;
+    float k = 600.0;
     float bounds_k = 2000.0;
 
     // Damping coefficient
@@ -116,7 +116,9 @@ void main() {
                     }
 
                     vec3 p_pos = texture2D(u_posTex, uv).xyz;
-                    if (length(p_pos - pos) < 0.0001)
+                    int rb_idx = int(texture2D(u_relPosTex, uv));
+
+                    if (length(p_pos - pos) < 0.0001 || (rb_idx > -1 && rb_idx == index))
                         continue;
                     vec3 p_vel = texture2D(u_velTex, uv).xyz;
 
@@ -156,6 +158,9 @@ void main() {
         force.z += bounds_k * (u_bound - abs(newPos.z)) * sign(newPos.z);
         force.z -= bounds_n * vel.z;
     }
+
+    // reduce popping
+    force = clamp(force, -1000.0, 1000.0);
 
     gl_FragData[0] = posTexel;
     gl_FragData[1] = velTexel;

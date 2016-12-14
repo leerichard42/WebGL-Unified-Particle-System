@@ -108,10 +108,16 @@ void main() {
     gl_FragData[1] = quat_mult(deltaQuat, bodyRot);
 
     //update linear velocity
+//    if (length(linearMomentum) > 20.0) {
+//        linearMomentum = normalize(linearMomentum) * 20.0;
+//    }
     linearMomentum += totalForce * u_dt;
     gl_FragData[2] = vec4(linearMomentum, numParticles);
 
     //update angular momentum
+//    if (length(angularMomentum) > 0.1) {
+//        angularMomentum = normalize(angularMomentum) * 0.0;
+//    }
     angularMomentum *= 0.95; //damping
     angularMomentum += totalTorque * u_dt;
     gl_FragData[3] = vec4(angularMomentum, 0.0);

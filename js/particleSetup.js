@@ -75,12 +75,13 @@
         R.timeStep = 0.01;
 
         R.particleSize = .1;
-        R.bound = 1.5;
+        R.bound = 1.0;
         R.gridBound = R.bound * 1.1;
     }
 
     var initRigidBodyData = function() {
-        R.rigidBodiesEnabled = false;
+        R.rigidBodiesEnabled = true;
+        var bodyMass = 0.3;
         var exp = 2;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
@@ -121,7 +122,6 @@
 
         // Relative particle positions (cube for now) and rigid body index
         var relativePositions = Array(R.numParticles * 4).fill(-1.0);
-        var bodyMass = 0.3;
         if (R.rigidBodiesEnabled) {
             var index = 0;
             for (i = 0; i < R.numBodies; i++) {
