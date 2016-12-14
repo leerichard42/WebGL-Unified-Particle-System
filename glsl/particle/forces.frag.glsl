@@ -47,16 +47,18 @@ void main() {
 
     // Spring coefficient
     float k = 600.0;
+    float k_t = 5.0;
     float bounds_k = 2000.0;
 
     // Damping coefficient
-    float n = 10.0;
+    float n = 5.0;
     float bounds_n = 40.0;
     // Friction coefficient
     float u = 0.4;
 
     vec3 spring_total = vec3(0.0);
     vec3 damping_total = vec3(0.0);
+    vec3 shear_total = vec3(0.0);
     vec3 pos = posTexel.xyz;
     vec3 vel = velTexel.xyz;
     
@@ -123,10 +125,14 @@ void main() {
                     vec3 p_vel = texture2D(u_velTex, uv).xyz;
 
                     vec3 rel_pos = p_pos - pos;
-                    vec3 rel_vel = p_vel - vel;
                     if (length(rel_pos) < u_diameter) {
                         spring_total += -k * (u_diameter - length(rel_pos)) * normalize(rel_pos);
+
+                        vec3 rel_vel = p_vel - vel;
                         damping_total += n * rel_vel;
+
+                        vec3 rel_vel_tangent = rel_vel - dot(rel_vel, normalize(rel_pos)) * normalize(rel_pos);
+                        shear_total += k_t * rel_vel_tangent;
                     }
                 }
             }
@@ -134,7 +140,7 @@ void main() {
     }
     // END GRID
 
-    vec3 force = spring_total + damping_total;
+    vec3 force = spring_total + damping_total + shear_total;
     force.y -= 9.8 * mass;
 
     //Predict next position

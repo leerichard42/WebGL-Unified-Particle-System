@@ -11,6 +11,7 @@
         setupBuffers('A');
         setupBuffers('RK2_A');
         setupBuffers('RK2_B');
+        setupBuffers('RK2_C');
         setupBuffers('B');
 
         generateGrid('A');
@@ -34,9 +35,9 @@
 
         var particleMass = 1.0;
         for (var i = 0; i < R.numParticles; i++) {
-            positions.push( Math.random() * 0.5 - 0.25,
-                            Math.random() * 2.0 + 1.0,
-                            Math.random() * 0.5 - 0.25,
+            positions.push( Math.random() * 0.2 - 0.1,
+                            Math.random() * 1.0 + 0.0,
+                            Math.random() * 0.2 - 0.1,
                 particleMass);
         }
         R.particlePositions = positions;
@@ -44,8 +45,8 @@
         // Initialize particle velocities
         var velocities = [];
         var velBounds = {
-            min: -1.0,
-            max: 1.0
+            min: -0.2,
+            max: 0.2
         };
         //velocities.push(1.0, 0.0, 0.0, 1.0);
         for (var i = 0; i < R.numParticles; i++) {
@@ -75,13 +76,13 @@
         R.timeStep = 0.01;
 
         R.particleSize = .1;
-        R.bound = 1.0;
+        R.bound = 0.5;
         R.gridBound = R.bound * 1.1;
     }
 
     var initRigidBodyData = function() {
         R.rigidBodiesEnabled = true;
-        var bodyMass = 0.3;
+        R.bodyParticleMass = 0.3;
         var exp = 2;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
@@ -101,7 +102,7 @@
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
             positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
-                4 + i/2.0,
+                0.8 + i/4.0,
                 Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
                 particlesPerBody * i);
         }
@@ -114,17 +115,29 @@
         }
         R.bodyOrientations = orientations;
 
+        // Body forces
+        var forces = [];
+        for (i = 0; i < R.numBodies; i++) {
+            forces.push( 0.0, -0.1, 0.0, 1.0);
+        }
+        R.bodyForces = forces;
+
+        // Body torques
+        var torques = [];
+        for (i = 0; i < R.numBodies; i++) {
+            torques.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyTorques = torques;
+
         // Linear and angular velocities
         var linearMomenta = Array(R.numBodies * 4).fill(0.0);
-        R.linearMomenta = linearMomenta;
         var angularMomenta = Array(R.numBodies * 4).fill(0.0);
-        R.angularMomenta = angularMomenta;
 
         // Relative particle positions (cube for now) and rigid body index
         var relativePositions = Array(R.numParticles * 4).fill(-1.0);
         if (R.rigidBodiesEnabled) {
             var index = 0;
-            for (i = 0; i < R.numBodies; i++) {
+            for (var i = 0; i < R.numBodies; i++) {
                 for (var x = 0; x < 2; x++) {
                     for (var y = 0; y < 2; y++) {
                         for (var z = 0; z < 2; z++) {
@@ -132,8 +145,7 @@
                             relativePositions[index + 1] = y * R.particleSize - R.particleSize / 2.0;
                             relativePositions[index + 2] = z * R.particleSize - R.particleSize / 2.0;
                             relativePositions[index + 3] = i;
-                            R.particlePositions[index + 3] = bodyMass;
-                            linearMomenta[index + 3] = particlesPerBody;
+                            R.particlePositions[index + 3] = R.bodyParticleMass;
                             index += 4;
                         }
                     }
@@ -142,12 +154,52 @@
                 relativePositions[index + 1] = 0;
                 relativePositions[index + 2] = 0;
                 relativePositions[index + 3] = i;
-                R.particlePositions[index + 3] = bodyMass;
-                linearMomenta[index + 3] = particlesPerBody;
+                R.particlePositions[index + 3] = R.bodyParticleMass;
+                linearMomenta[4*i + 3] = particlesPerBody;
+
                 index += 4;
             }
         }
         R.relativePositions = relativePositions;
+        R.linearMomenta = linearMomenta;
+        R.angularMomenta = angularMomenta;
+
+        computeInertiaTensors();
+    }
+
+    var computeInertiaTensors = function() {
+        var inertiaTensors = [];
+        for (var i = 0; i < R.numBodies; i++) {
+            var w_idx = 4*i + 3;
+
+            var mass = R.bodyParticleMass;
+            //console.log("MASS: " + mass);
+            var startIndex = R.bodyPositions[w_idx];
+            //console.log("START: " + startIndex);
+            var numParticles = R.linearMomenta[w_idx];
+            //console.log("NUM PARTICLES: " + numParticles);
+            var particleInertia = Array(9).fill(0.0);
+            for (var j = startIndex; j < startIndex + numParticles; j++) {
+                var rx = R.relativePositions[4*j];
+                var ry = R.relativePositions[4*j + 1];
+                var rz = R.relativePositions[4*j + 2];
+                //console.log("REL: (" + rx + "," + ry + "," + rz + ")");
+                particleInertia[0] += mass * (ry * ry + rz * rz);
+                particleInertia[1] += -1 * mass * ry * rx;
+                particleInertia[2] += -1 * mass * rz * rx;
+                particleInertia[3] += -1 * mass * rx * ry;
+                particleInertia[4] += mass * (rx * rx + rz * rz);
+                particleInertia[5] += -1 * mass * rz * ry;
+                particleInertia[6] += -1 * mass * rx * rz;
+                particleInertia[7] += -1 * mass * ry * rz;
+                particleInertia[8] += mass * (rx * rx + ry * ry);
+            }
+            //console.log(particleInertia);
+            inertiaTensors.push.apply(inertiaTensors, particleInertia);
+        }
+        //console.log(inertiaTensors);
+
+        R.inertiaTensors = inertiaTensors;
     }
 
     var initRender = function() {
@@ -186,23 +238,29 @@
             // Rigid Body Data
             R["bodyPosTex" + id] = createAndBindTexture(R["bodyFBO" + id],
                 gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyPositions);
-            console.log(R.bodyPositions);
 
             R["bodyRotTex" + id] = createAndBindTexture(R["bodyFBO" + id],
                 gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyOrientations);
 
+            R["bodyForceTex" + id] = createAndBindTexture(R["bodyFBO" + id],
+                gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyForces);
+
+            R["bodyTorqueTex" + id] = createAndBindTexture(R["bodyFBO" + id],
+                gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.bodySideLength, R.bodySideLength, R.bodyTorques);
+
             R["linearMomentumTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-                gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, R.bodySideLength, R.bodySideLength, R.linearMomenta);
+                gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL, R.bodySideLength, R.bodySideLength, R.linearMomenta);
 
             R["angularMomentumTex" + id] = createAndBindTexture(R["bodyFBO" + id],
-                gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL, R.bodySideLength, R.bodySideLength, R.angularMomenta);
+                gl_draw_buffers.COLOR_ATTACHMENT5_WEBGL, R.bodySideLength, R.bodySideLength, R.angularMomenta);
 
             abortIfFramebufferIncomplete(R["bodyFBO" + id]);
             gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
                 gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
                 gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL,
                 gl_draw_buffers.COLOR_ATTACHMENT3_WEBGL,
-                gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL]);
+                gl_draw_buffers.COLOR_ATTACHMENT4_WEBGL,
+                gl_draw_buffers.COLOR_ATTACHMENT5_WEBGL]);
         }
     }
 
@@ -342,15 +400,41 @@
                 p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
                 p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
+                p.u_bodyForceTex = gl.getUniformLocation(prog, 'u_bodyForceTex');
+                p.u_bodyTorqueTex = gl.getUniformLocation(prog, 'u_bodyTorqueTex');
                 p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
                 p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
                 p.u_particleSideLength = gl.getUniformLocation(prog, 'u_particleSide');
                 p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
+                //p.prog.u_inertiaTensors = gl.getUniformLocation(prog, 'u_inertiaTensors');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
                 R.progBodyEuler = p;
+            }
+        );
+
+        // Load body update shader
+        loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/object/bodyForces.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
+                p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
+                p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
+                p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
+                p.u_bodyForceTex = gl.getUniformLocation(prog, 'u_bodyForceTex');
+                p.u_bodyTorqueTex = gl.getUniformLocation(prog, 'u_bodyTorqueTex');
+                p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
+                p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
+                p.u_particleSideLength = gl.getUniformLocation(prog, 'u_particleSide');
+                p.a_position  = gl.getAttribLocation(prog, 'a_position');
+
+                // Save the object into this variable for access later
+                R.progBodyForces = p;
             }
         );
 
@@ -414,6 +498,7 @@
                 p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
                 p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
+                p.u_bodyForceTex = gl.getUniformLocation(prog, 'u_bodyForceTex');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
