@@ -99,11 +99,11 @@ window.readyModelForDraw = function(prog, m) {
     gl.enableVertexAttribArray(prog.a_position);
     gl.vertexAttribPointer(prog.a_position, m.posInfo.size, m.posInfo.type, false, m.posInfo.stride, m.posInfo.offset);
 
-    gl.enableVertexAttribArray(prog.a_normal);
-    gl.vertexAttribPointer(prog.a_normal, m.norInfo.size, m.norInfo.type, false, m.norInfo.stride, m.norInfo.offset);
+    // gl.enableVertexAttribArray(prog.a_normal);
+    // gl.vertexAttribPointer(prog.a_normal, m.norInfo.size, m.norInfo.type, false, m.norInfo.stride, m.norInfo.offset);
 
-    gl.enableVertexAttribArray(prog.a_uv);
-    gl.vertexAttribPointer(prog.a_uv, m.uvInfo.size, m.uvInfo.type, false, m.uvInfo.stride, m.uvInfo.offset);
+    // gl.enableVertexAttribArray(prog.a_uv);
+    // gl.vertexAttribPointer(prog.a_uv, m.uvInfo.size, m.uvInfo.type, false, m.uvInfo.stride, m.uvInfo.offset);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.idx);
 };

@@ -12,7 +12,8 @@ varying vec3 pos;
 attribute vec4 a_position;
 
 void main() {
-    gl_Position = u_cameraMat * a_position;
+    vec4 position = u_cameraMat * a_position;
+    gl_Position = position;
     texID = float(u_texID);
-    pos = a_position.xyz;
+    pos = position.xyz;
 }

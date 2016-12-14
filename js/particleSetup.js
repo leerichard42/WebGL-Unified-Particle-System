@@ -268,16 +268,15 @@
         gl.useProgram(R.progParticleFromMeshDepth.prog);
         gl.viewport(0, 0, gridSideLength, gridSideLength);
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["meshParticlesFBO" + id]);
-        //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        
+
         var orthoMat = new THREE.Matrix4();
-        var width = 3;
-        var height = 3;
+        var width = 2;
+        var height = 2;
         var camera = new THREE.OrthographicCamera( width / -2, width / 2, 
-            height / 2, height / -2, 1, 100);
-        camera.position.set(0, 0, -15);
+           height / 2, height / -2, 1, 100);
+        camera.position.set(0, 1, -10);
         camera.up = new THREE.Vector3(0, 1, 0);
-        camera.lookAt(new THREE.Vector3(0, 0, 0));
+        camera.lookAt(new THREE.Vector3(0, 1, 0));
 
         camera.updateMatrixWorld();
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);
