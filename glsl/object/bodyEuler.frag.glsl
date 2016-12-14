@@ -7,8 +7,6 @@ precision highp int;
 //run on each rigidbody
 
 uniform sampler2D u_posTex;
-uniform sampler2D u_velTex;
-uniform sampler2D u_forceTex;
 uniform sampler2D u_bodyPosTex;
 uniform sampler2D u_bodyRotTex;
 uniform sampler2D u_bodyForceTex;
@@ -63,23 +61,6 @@ void main() {
     float startIndex = texture2D(u_bodyPosTex, v_uv).w;
     float numParticles = texture2D(u_linearMomentumTex, v_uv).w;
 
-    vec3 totalForce = vec3(0.0);
-    vec3 totalTorque = vec3(0.0);
-    for (int i = 0; i < 1048576; i++) {
-        if (i < int(startIndex))
-            continue;
-        if (i == int(startIndex + numParticles))
-            break;
-
-        vec2 uv = getUV(i, u_particleSide);
-        vec3 pos = texture2D(u_posTex, uv).xyz;
-        vec3 vel = texture2D(u_velTex, uv).xyz;
-        vec3 force = texture2D(u_forceTex, uv).xyz;
-        totalForce += force;
-        vec3 rel_pos = pos - bodyPos;
-        totalTorque += cross(rel_pos, force);
-    }
-
     float mass = texture2D(u_posTex, getUV(int(startIndex), u_particleSide)).w;
     //update position
     vec3 linearVel = linearMomentum / (numParticles * mass);
@@ -116,13 +97,11 @@ void main() {
     gl_FragData[3] = bodyTorque;
 
     //update linear velocity
-//    linearMomentum += totalForce * u_dt;
     linearMomentum += bodyForce.xyz * u_dt;
     gl_FragData[4] = vec4(linearMomentum, numParticles);
 
     //update angular momentum
     angularMomentum *= 0.95; //damping
-//    angularMomentum += totalTorque * u_dt;
     angularMomentum += bodyTorque.xyz * u_dt;
     gl_FragData[5] = vec4(angularMomentum, 0.0);
 }

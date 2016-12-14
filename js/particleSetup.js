@@ -396,8 +396,6 @@
 
                 // Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
-                p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
-                p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
                 p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
                 p.u_bodyForceTex = gl.getUniformLocation(prog, 'u_bodyForceTex');
@@ -467,13 +465,18 @@
                 var p = { prog: prog };
 
                 // Retrieve the uniform and attribute locations
+                p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
-                p.u_linearMomentumTex1 = gl.getUniformLocation(prog, 'u_linearMomentumTex1');
+                p.u_bodyRotTex = gl.getUniformLocation(prog, 'u_bodyRotTex');
                 p.u_forceTex1 = gl.getUniformLocation(prog, 'u_forceTex1');
-                p.u_linearMomentumTex2 = gl.getUniformLocation(prog, 'u_linearMomentumTex2');
                 p.u_forceTex2 = gl.getUniformLocation(prog, 'u_forceTex2');
+                p.u_torqueTex1 = gl.getUniformLocation(prog, 'u_torqueTex1');
+                p.u_torqueTex2 = gl.getUniformLocation(prog, 'u_torqueTex2');
+                p.u_linearMomentumTex1 = gl.getUniformLocation(prog, 'u_linearMomentumTex1');
+                p.u_linearMomentumTex2 = gl.getUniformLocation(prog, 'u_linearMomentumTex2');
+                p.u_angularMomentumTex1 = gl.getUniformLocation(prog, 'u_angularMomentumTex1');
+                p.u_angularMomentumTex2 = gl.getUniformLocation(prog, 'u_angularMomentumTex2');
                 p.u_particleSideLength = gl.getUniformLocation(prog, 'u_particleSide');
-                p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
