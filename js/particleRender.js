@@ -54,6 +54,8 @@
                 //rk2c has pp2b, pv2, pf2, bp2, bv2, bf1
                 updateParticlesRK2(state, R.progRK2, 'A', 'A', 'RK2_A', 'RK2_C', 'RK2_C', 'B');
 
+                calculateBodyForces(state, 'RK2_C', 'RK2_C', 'RK2_B');
+                updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_A', 'RK2_B', 'RK2_B', 'B');
             }
             else {
                 updateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
@@ -296,15 +298,16 @@
         gl.viewport(0, 0, R.bodySideLength, R.bodySideLength);
 
         gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
+        gl.uniform1f(prog.u_diameter, R.particleSize);
         gl.uniform1f(prog.u_dt, R.timeStep);
 
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
         bindTextures(prog, [prog.u_posTex, prog.u_bodyPosTex, prog.u_bodyRotTex,
-                prog.u_forceTex1, prog.u_forceTex2,
-                prog.u_torqueTex1, prog.u_torqueTex2,
-                prog.u_linearMomentumTex1, prog.u_linearMomentumTex2,
-            prog.u_angularMomentumTex1, prog.u_angularMomentumTex2],
+                prog.u_forceTex_1, prog.u_forceTex_2,
+                prog.u_torqueTex_1, prog.u_torqueTex_2,
+                prog.u_linearMomentumTex_1, prog.u_linearMomentumTex_2,
+            prog.u_angularMomentumTex_1, prog.u_angularMomentumTex_2],
             [R["particlePosTex" + pos], R["bodyPosTex" + pos], R["bodyRotTex" + pos],
                 R["bodyForceTex" + force_1], R["bodyForceTex" + force_2],
                 R["bodyTorqueTex" + force_1], R["bodyTorqueTex" + force_2],
