@@ -84,6 +84,7 @@ void main() {
     vec3 newPos = bodyPos + ((u_dt / 2.0) * (linearVel_1 + linearVel_2));
 
     float inverseMomentComponent = 6.0/((numParticles * mass) * (4.0 * u_diameter * u_diameter));
+    inverseMomentComponent *= 0.1;
     mat3 inverseMomentOfInertia = mat3(
         inverseMomentComponent, 0.0, 0.0,
         0.0, inverseMomentComponent, 0.0,
@@ -94,6 +95,11 @@ void main() {
     vec3 angularVelocity_1 = inverseInertiaTensor * angularMomentum_1;
     vec3 angularVelocity_2 = inverseInertiaTensor * angularMomentum_2;
     vec3 theta = ((angularVelocity_1 + angularVelocity_2) / 2.0) * u_dt / 2.0;
+//    if (int(startIndex) == 0) {
+//        theta *= 0.1;
+//    }
+//    vec3 angularVelocity = inverseInertiaTensor * angularMomentum_1;
+//    vec3 theta = angularVelocity * u_dt / 2.0;
     float angle = length(theta);
     float s;
     vec4 deltaQuat;
@@ -106,7 +112,7 @@ void main() {
         s = sin(angle) / angle;
     }
     deltaQuat.xyz = theta * s;
-    vec4 newRot = quat_mult(deltaQuat, bodyRot);
+    vec4 newRot = normalize(quat_mult(deltaQuat, normalize(bodyRot)));
 
     vec3 newLinearMomentum = linearMomentum_1 + ((u_dt / 2.0) * (force_1 + force_2));
     vec3 newAngularMomentum = angularMomentum_1 + ((u_dt / 2.0) * (torque_1 + torque_2));

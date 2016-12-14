@@ -36,13 +36,13 @@ mat3 rot_from_quat(vec4 q) {
 }
 
 vec4 quat_mult(vec4 q1, vec4 q2) {
-  vec4 qr;
-  qr.x = (q1.w * q2.x) + (q1.x * q2.w) + (q1.y * q2.z) - (q1.z * q2.y);
-  qr.y = (q1.w * q2.y) - (q1.x * q2.z) + (q1.y * q2.w) + (q1.z * q2.x);
-  qr.z = (q1.w * q2.z) + (q1.x * q2.y) - (q1.y * q2.x) + (q1.z * q2.w);
-  qr.w = (q1.w * q2.w) - (q1.x * q2.x) - (q1.y * q2.y) - (q1.z * q2.z);
-  return qr;
-}
+   vec4 qr;
+   qr.x = (q1.w * q2.x) + (q1.x * q2.w) + (q1.y * q2.z) - (q1.z * q2.y);
+   qr.y = (q1.w * q2.y) - (q1.x * q2.z) + (q1.y * q2.w) + (q1.z * q2.x);
+   qr.z = (q1.w * q2.z) + (q1.x * q2.y) - (q1.y * q2.x) + (q1.z * q2.w);
+   qr.w = (q1.w * q2.w) - (q1.x * q2.x) - (q1.y * q2.y) - (q1.z * q2.z);
+   return qr;
+ }
 
 mat3 transpose(mat3 m) {
   return mat3(m[0][0], m[1][0], m[2][0],
@@ -101,7 +101,7 @@ void main() {
     gl_FragData[4] = vec4(linearMomentum, numParticles);
 
     //update angular momentum
-    angularMomentum *= 0.95; //damping
+    angularMomentum *= 0.9; //damping
     angularMomentum += bodyTorque.xyz * u_dt;
     gl_FragData[5] = vec4(angularMomentum, 0.0);
 }

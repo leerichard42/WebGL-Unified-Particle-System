@@ -23,6 +23,8 @@ uniform float u_gridCellSize;
 
 varying vec2 v_uv;
 
+const float EPSILON = 0.0000001;
+
 vec2 uvFrom3D(vec3 pos) {
     float u = pos.x + float(u_gridNumCellsPerSide) * (pos.z - float(u_gridTexTileDimensions) * floor(pos.z / float(u_gridTexTileDimensions)));
 
@@ -106,12 +108,12 @@ void main() {
 
                 vec4 p_idx = texture2D(u_gridTex, neighborGridUV);
                 for (int c = 0; c < 4; c++) {
-                    if (p_idx[c] == 0.) {
-                        continue;
-                    }
+//                    if (p_idx[c] == 0.) {
+//                        continue;
+//                    }
                     vec2 uv;
                     // Kind of hacky - setting particle with index 0.0 to 0.5
-                    if (p_idx[c] == .5) {
+                    if (abs(p_idx[c] - .5) < EPSILON) {
                         uv = getUV(0, u_particleSide);
                     } else {
                         uv = getUV(int(p_idx[c]), u_particleSide);

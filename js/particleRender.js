@@ -31,12 +31,12 @@
             updateEuler(state, 'A', 'RK2_B', 'RK2_A');
 
             if (R.rigidBodiesEnabled) {
+                //calculateBodyForces(state, 'A', 'RK2_B', 'RK2_C');
                 //updateBodyEuler(state, 'A', 'RK2_C', 'B');
-
+                //
                 //updateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
                 //calculateForces(state, R.progPhysics, 'RK2_A', 'B', 'A');
                 //updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
-                ////updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
 
 
                 //A has pp1, pv1, bp1, bv1 - do not write
@@ -411,10 +411,10 @@
             bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_gridTex,
                 prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_linearMomentumTex,
                 prog.u_angularMomentumTex,
-                prog.u_relPosTex, prog.u_bodyForceTex],
+                prog.u_relPosTex, prog.u_bodyForceTex, prog.u_bodyTorqueTex],
                 [R.particlePosTexA, R.particleVelTexA, R.forceTexRK2_B, R.gridTexA,
                     R.bodyPosTexA, R.bodyRotTexA, R.linearMomentumTexA, R.angularMomentumTexA,
-                    R.relativePosTexA, R.bodyForceTexRK2_C]);
+                    R.relativePosTexA, R.bodyForceTexRK2_B, R.bodyTorqueTexRK2_B]);
             renderFullScreenQuad(R.progDebug);
         }
     }

@@ -118,7 +118,7 @@
         // Body forces
         var forces = [];
         for (i = 0; i < R.numBodies; i++) {
-            forces.push( 0.0, -0.1, 0.0, 1.0);
+            forces.push( 0.0, 0.0, 0.0, 1.0);
         }
         R.bodyForces = forces;
 
@@ -503,6 +503,7 @@
                 p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
                 p.u_bodyForceTex = gl.getUniformLocation(prog, 'u_bodyForceTex');
+                p.u_bodyTorqueTex = gl.getUniformLocation(prog, 'u_bodyTorqueTex');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
