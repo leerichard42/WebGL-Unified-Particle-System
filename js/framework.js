@@ -118,11 +118,11 @@ var width, height;
         controls.zoomSpeed = 1.0;
         controls.panSpeed = 2.0;
 
-        var glTFURL = 'models/duck.gltf';
+        var glTFURL = 'models/Duck.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader(gl);
         glTFLoader.loadGLTF(glTFURL, function (glTF) {
             var curScene = glTF.scenes[glTF.defaultScene];
-
+            
             var webGLTextures = {};
 
             // temp var
@@ -253,23 +253,20 @@ var width, height;
                         colmap: webGLTextures[colorTextureName].texture, 
                         normap: webGLTextures[normalTextureName] ? webGLTextures[normalTextureName].texture : null
                     });
-
                 }
+            }         
+            // Yes, this is a stupid and unfortunate way of starting the
+            // setup, but the gltf needs to be loaded.
+            R.particleSetup(models[0]);
+            //requestAnimationFrame(update);
 
-            }
-
-
-            
         });
         resize();
 
         gl.clearColor(0.5, 0.5, 0.5, 0.5);
         gl.clearDepth(1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		
-        R.particleSetup();
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);        
 
-        requestAnimationFrame(update);
     };
 
     window.handle_load.push(init);

@@ -3,7 +3,9 @@
 
     window.R = {};
 
-    R.particleSetup = function() {
+    R.particleSetup = function(model) {
+        R.model = model;
+
         loadAllShaderPrograms();
         initParticleData();
         initRigidBodyData();
@@ -15,10 +17,12 @@
 
         generateGrid('A');
         generateGrid('B');
+
+        generateParticlesFromMesh("duck", 64)
     };
 
     var initParticleData = function() {
-        var exp = 10;
+        var exp = 12;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -75,7 +79,7 @@
         R.timeStep = 0.01;
 
         R.particleSize = .1;
-        R.bound = 1.5;
+        R.bound = 2.;
         R.gridBound = R.bound * 1.1;
     }
 
@@ -233,24 +237,120 @@
         abortIfFramebufferIncomplete(R["gridFBO" + id]);
     }
 
-    var generateParticlesFromMesh = function(id, prog, model, gridSideLength) {
+    var generateParticlesFromMesh = function(id, gridSideLength) {
+        // HACKY!
+        if (!R.progParticleFromMeshDepth || !R.progDebug) {
+            window.requestAnimationFrame(function() {
+                generateParticlesFromMesh(id, gridSideLength);
+            });
+            return;
+        }
+        debugger;
         R["meshParticlesFBO" + id] = gl.createFramebuffer();
-        var gridTexSideLength = 
+        var gridTexSideLength = Math.ceil(Math.sqrt(Math.pow(gridSideLength, 3)));
 
-        R["meshParticlesTex" + id] = createAndBindTexture(R["meshParticlesFBO" + id],
+        var localR = {};
+        localR["meshParticlesTex" + id + "0"] = createAndBindTexture(R["meshParticlesFBO" + id],
             gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gridSideLength, gridSideLength, null);
+        localR["meshParticlesTex" + id + "1"] = createAndBindTexture(R["meshParticlesFBO" + id],
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, gridSideLength, gridSideLength, null);
+        R["meshParticlesTex" + id] = createAndBindTexture(R["meshParticlesFBO" + id],
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, gridSideLength, gridSideLength, null);
 
         createAndBindDepthStencilBuffer(R["meshParticlesFBO" + id], gridSideLength, gridSideLength);
         
+        abortIfFramebufferIncomplete(R["bodyFBO" + id]);
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+                gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
+                gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL]);
+
         // Draw model 2x on two textures. Once with near, once with far
-        // Feed those textures (and array of uniform grid) into vertex shader
-        // Output 1s or 0s into 3D texture
+        gl.useProgram(R.progParticleFromMeshDepth.prog);
+        gl.viewport(0, 0, gridSideLength, gridSideLength);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R["meshParticlesFBO" + id]);
+        //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         
-        //readyModelForDraw(prog, model);
+        var orthoMat = new THREE.Matrix4();
+        var width = 3;
+        var height = 3;
+        var camera = new THREE.OrthographicCamera( width / -2, width / 2, 
+            height / 2, height / -2, 1, 100);
+        camera.position.set(0, 0, -15);
+        camera.up = new THREE.Vector3(0, 1, 0);
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+        camera.updateMatrixWorld();
+        camera.matrixWorldInverse.getInverse(camera.matrixWorld);
+        orthoMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
 
-        //gl.drawElements(model.gltf.mode, model.gltf.indices.length, model.gltf.indicesComponentType, 0);
+        gl.uniformMatrix4fv(R.progParticleFromMeshDepth.u_cameraMat, false, orthoMat.elements);
+        gl.uniform1i(R.progParticleFromMeshDepth.u_texID, 0);
+        
+        readyModelForDraw(R.progParticleFromMeshDepth, R.model);
+        gl.drawElements(R.model.gltf.mode, R.model.gltf.indices.length, R.model.gltf.indicesComponentType, 0);
+        
+        var prog = R.progDebug;
+        gl.useProgram(prog.prog);
+        gl.viewport(0, 0, 128 * 5, 128 * 2);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.activeTexture(gl['TEXTURE0']);
+        gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "0"]);
+        gl.uniform1i(prog.u_depth0, 0);
+
+        renderFullScreenQuad(R.progDebug);
+        // gl.uniform1i(progParticleFromMesh.u_texID, 1);
+        // // Feed those textures (and array of uniform grid) into vertex shader
+
+        // Output 1s or 0s into 3D texture
     }
+
+    // TEMPORARY
+    var renderFullScreenQuad = (function() {
+		var positions = new Float32Array([
+			-1.0, -1.0,
+			1.0, -1.0,
+			-1.0,  1.0,
+			1.0,  1.0
+		]);
+
+		var vbo = null;
+
+        var init = function() {
+			// Create a new buffer with gl.createBuffer, and save it as vbo.
+			vbo = gl.createBuffer();
+
+			// Bind the VBO as the gl.ARRAY_BUFFER
+			gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
+
+			// Upload the positions array to the currently-bound array buffer
+			// using gl.bufferData in static draw mode.
+			gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+		};
+
+		return function(prog) {
+			if (!vbo) {
+				// If the vbo hasn't been initialized, initialize it.
+				init();
+			}
+
+			// Bind the program to use to draw the quad
+			gl.useProgram(prog.prog);
+
+			// Bind the position array to the vbo
+			gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+			gl.enableVertexAttribArray(prog.a_position);
+			gl.vertexAttribPointer(prog.a_position, 2, gl.FLOAT, gl.FALSE, 0, 0);
+
+			// Use gl.drawArrays (or gl.drawElements) to draw your quad.
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+			// Unbind the array buffer.
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+		};
+	})();
+    ///////////////
+
     /**
      * Loads all of the shader programs used in the pipeline.
      */
@@ -261,7 +361,7 @@
 			function(prog) {
 				// Create an object to hold info about this shader program
 				var p = { prog: prog };
-                debugger;
+
 				// Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
@@ -414,6 +514,7 @@
                 p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
                 p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
+                p.u_depth0 = gl.getUniformLocation(prog, 'u_depth0');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
@@ -481,6 +582,21 @@
                 R.progGrid = p;
             }
         );
+
+         // Load particle generation shader 
+        loadShaderProgram(gl, 'glsl/object/particleFromMesh.vert.glsl', 'glsl/object/particleFromMesh.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_texID = gl.getUniformLocation(prog, 'u_texID');
+                p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+                p.a_position = gl.getUniformLocation(prog, 'a_position');                
+                // Save the object into this variable for access later
+                R.progParticleFromMeshDepth = p;
+            }
+        );
     };
 
 	var createAndBindTexture = function(fbo, attachment, sideLengthx, sideLengthy, data) {
@@ -521,7 +637,5 @@
 
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-
     }
 })();
