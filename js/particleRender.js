@@ -195,6 +195,7 @@
         gl.uniform1f(prog.u_nBody, R.nBody);
         gl.uniform1f(prog.u_nBound, R.nBound);
         gl.uniform1f(prog.u_u, R.u);
+        gl.uniform1i(prog.u_scene, R.scene);
 
         // Fill in grid uniforms
         gl.uniform1f(prog.u_gridSideLength, R.gridBound * 2.); // WARNING: R.bound + constant

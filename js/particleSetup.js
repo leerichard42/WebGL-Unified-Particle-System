@@ -349,14 +349,14 @@
                         1.2 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
                     createCircle(y * R.particleSize + 0.5 * R.particleSize,
                         1.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
-                    createCircle(y * R.particleSize,
-                        2.0 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
+                    //createCircle(y * R.particleSize,
+                    //    2.0 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
                     createCircle(y * R.particleSize,
                         1.2 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
                     createCircle(y * R.particleSize + 0.5 * R.particleSize,
                         1.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
-                    createCircle(y * R.particleSize,
-                        2.0 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
+                    //createCircle(y * R.particleSize,
+                    //    2.0 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
                 }
             }
         }
@@ -857,6 +857,7 @@
                 p.u_diameter = gl.getUniformLocation(prog, 'u_diameter');
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
                 p.u_bound = gl.getUniformLocation(prog, 'u_bound');
+                p.u_scene = gl.getUniformLocation(prog, 'u_scene');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 //Physics coefficients
