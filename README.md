@@ -22,6 +22,17 @@ This project requires a WebGL capable browser which supports the extensions 'OES
 ### Discrete Element Method
 
 ### Uniform Grid
+In order to increase the performance of the shaders, a uniform grid was created so each particle could search its nearest neighbors when doing physics calculations. The procedure for generating and updating the uniform grid was adapted from [GPU gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html).
+
+A 3D texture represents the voxels in the uniform grid, and each pixel stores the index of the particles contained within it. Since WebGL 1 does not support 3D textures, we adapted a mapping from a 3D texture coordinate onto a 2D texture. The 2D texture can be seen below:
+
+![](img/3D_grid.gif)
+
+The process for updating th
+##### Pitfalls
+![](http://http.developer.nvidia.com/GPUGems3/elementLinks/29fig08.jpg)
+(Image credit: [NVIDIA Gpu Gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html))
+
 
 ### Rigid Bodies
 //rigid body indexing image
@@ -30,7 +41,11 @@ This project requires a WebGL capable browser which supports the extensions 'OES
 ### Particle Rendering
 
 ### Arbitrary Model Loading
+![](img/depth_ducks.PNG)
 
+![](img/duck_final.PNG)
+
+![](img/duck_voxel.PNG)
 ## Performance Analysis
 
 - Tested on:
@@ -41,21 +56,6 @@ This project requires a WebGL capable browser which supports the extensions 'OES
 ### performance among scenes
 
 
-
-
-
-### Uniform Grid
-![](http://http.developer.nvidia.com/GPUGems3/elementLinks/29fig08.jpg)
-(Image credit: [NVIDIA Gpu Gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html))
-
-![](img/3D_grid.gif)
-
-### Particle Generation from Mesh
-![](img/depth_ducks.PNG)
-
-![](img/duck_final.PNG)
-
-![](img/duck_voxel.PNG)
 ### References
 http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html //gpu gems
 http://learningwebgl.com/blog/?p=1786 //rendering to texture
