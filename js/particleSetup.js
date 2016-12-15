@@ -18,7 +18,7 @@
         generateGrid('A');
         generateGrid('B');
 
-        generateParticlesFromMesh("duck", 32)
+        generateParticlesFromMesh("duck", 16)
     };
 
     var initParticleData = function() {
@@ -331,25 +331,25 @@
 
         renderFullScreenQuad(R.progParticleFromMeshVoxel);
 
-        // Temporary debug
-        gl.useProgram(R.progDebug.prog);
-        gl.viewport(0, 0, 128 * 6, 128 * 2);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        // // Temporary debug
+        // gl.useProgram(R.progDebug.prog);
+        // gl.viewport(0, 0, 128 * 6, 128 * 2);
+        // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-        // Bind textures
-        gl.activeTexture(gl['TEXTURE0']);
-        gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "0"]);
-        gl.uniform1i(R.progDebug.u_depth0, 0);
+        // // Bind textures
+        // gl.activeTexture(gl['TEXTURE0']);
+        // gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "0"]);
+        // gl.uniform1i(R.progDebug.u_depth0, 0);
 
-        gl.activeTexture(gl['TEXTURE1']);
-        gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "1"]);
-        gl.uniform1i(R.progDebug.u_depth1, 1);
+        // gl.activeTexture(gl['TEXTURE1']);
+        // gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "1"]);
+        // gl.uniform1i(R.progDebug.u_depth1, 1);
         
-        gl.activeTexture(gl['TEXTURE2']);
-        gl.bindTexture(gl.TEXTURE_2D, R["meshParticlesTex" + id]);
-        gl.uniform1i(R.progDebug.u_voxel, 2);
+        // gl.activeTexture(gl['TEXTURE2']);
+        // gl.bindTexture(gl.TEXTURE_2D, R["meshParticlesTex" + id]);
+        // gl.uniform1i(R.progDebug.u_voxel, 2);
 
-        renderFullScreenQuad(R.progDebug);
+        // renderFullScreenQuad(R.progDebug);
 
         // Output 1s or 0s into 3D texture
     }
