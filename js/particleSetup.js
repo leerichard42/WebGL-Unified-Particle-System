@@ -379,7 +379,7 @@
 
     // Pile Init
     var initPileParticleData = function() {
-        var exp = 10;
+        var exp = 14;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -389,15 +389,15 @@
         // Initialize particle positions
         var positions = [];
         var gridBounds = {
-            min: 1,
+            min: 0,
             max: 2
         };
 
         var particleMass = 1.0;
         for (var i = 0; i < R.numParticles; i++) {
-            positions.push( Math.random() * 0.2 - 0.1,
-                Math.random() * 1.0 + 0.0,
-                Math.random() * 0.2 - 0.1,
+            positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
                 particleMass);
         }
         R.particlePositions = positions;
@@ -436,7 +436,7 @@
         R.timeStep = 0.01;
 
         R.particleSize = .1;
-        R.bound = 0.5;
+        R.bound = 2.5;
         R.gridBound = R.bound * 1.1;
 
         R.k = 1200.0;
@@ -451,7 +451,7 @@
     var initPileRigidBodyData = function() {
         R.rigidBodiesEnabled = true;
         R.bodyParticleMass = 0.3;
-        var exp = 2;
+        var exp = 10;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -470,7 +470,7 @@
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
             positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
-                0.8 + i/4.0,
+                0.8 + i/40.0,
                 Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
                 particlesPerBody * i);
         }
@@ -706,7 +706,7 @@
 
     // Duck Init
     var initDuckParticleData = function() {
-        var exp = 10;
+        var exp = 14;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -762,12 +762,12 @@
 
         R.timeStep = 0.01;
 
-        R.particleSize = .1;
-        R.bound = 2.0;
+        R.particleSize = .05;
+        R.bound = .8;
         R.gridBound = R.bound * 1.1;
         R.time = 0.0;
 
-        R.k = 1200.0;
+        R.k = 3500.0;
         R.kT = 5.0;
         R.kBody = 1600.0;
         R.kBound = 2000.0;
@@ -842,19 +842,21 @@
                 for (var k = 0; k < pixels.length; k++) {
                     if (pixels[k] != 0) {
                         var pixelIdx = k / 4;
+                        var scale = .3;
                         var x = pixelIdx % R.gridSideLength;
                         x /= R.gridSideLength;
-                        x *= 2;
-                        x -= 1;
+                        x *= scale;
+                        x -= scale/2;
 
                         var y = Math.floor(pixelIdx / R.gridSideLength) % R.gridSideLength;
                         y /= R.gridSideLength;
-                        y *= 2;
+                        y *= scale;
+                        y -= scale/2;
                         
                         var z = Math.floor(pixelIdx / Math.pow(R.gridSideLength, 2));
                         z /= R.gridSideLength;
-                        z *= 2;
-                        z -= 1;
+                        z *= scale;
+                        z -= scale/2;
 
                         relativePositions[index] = x;
                         relativePositions[index + 1] = y;
@@ -867,42 +869,7 @@
                 linearMomenta[4*i + 3] = particlesPerBody
             }
         }
-        // if (R.rigidBodiesEnabled) {
-        //     var index = 0;
-        //     for (var i = 0; i < R.numBodies; i++) {
-        //         for (var x = 0; x < 8; x++) {
-        //             for (var z = 0; z < 3; z++) {
-        //                 for (var y = 0; y < (z == 1 ? 4 : 3); y++) {
-        //                     relativePositions[index] = - R.particleSize / 2.0 - R.particleSize * 3.0 + x * R.particleSize;
-        //                     relativePositions[index + 1] =  - R.particleSize / 2.0 - R.particleSize * 2.0 + y * R.particleSize;
-        //                     relativePositions[index + 2] = - R.particleSize + z * R.particleSize ;
-        //                     relativePositions[index + 3] = i;
-        //                     R.particlePositions[index + 3] = R.bodyParticleMass;
-        //                     index += 4;
-        //                 }
-        //             }
-        //         }
-        //         for (var x = 0; x < 7; x++) {
-        //             for (var y = 0; y < 3; y++) {
-        //                 for (var z = 0; z < 2; z++) {
-        //                     relativePositions[index] = -R.particleSize * 3.0 + x * R.particleSize;
-        //                     relativePositions[index + 1] = -R.particleSize * 2.0 + y * R.particleSize;
-        //                     relativePositions[index + 2] = - R.particleSize / 2.0 + z * R.particleSize;
-        //                     relativePositions[index + 3] = i;
-        //                     R.particlePositions[index + 3] = R.bodyParticleMass;
-        //                     index += 4;
-        //                 }
-        //             }
-        //         }
-        //         //relativePositions[index] = 0;
-        //         //relativePositions[index + 1] = 0;
-        //         //relativePositions[index + 2] = 0;
-        //         //relativePositions[index + 3] = i;
-        //         //R.particlePositions[index + 3] = R.bodyParticleMass;
-        //         linearMomenta[4*i + 3] = particlesPerBody;
-        //         index += 4;
-        //     }
-        // }
+      
         R.relativePositions = relativePositions;
         R.linearMomenta = linearMomenta;
         R.angularMomenta = angularMomenta;
@@ -1515,7 +1482,7 @@
                 p.a_position = gl.getUniformLocation(prog, 'a_position');                
                 // Save the object into this variable for access later
                 R.progParticleFromMeshVoxel = p;
-                generateParticlesFromMesh("duck", 16);
+                generateParticlesFromMesh("duck", 12);
     
             }
         );
