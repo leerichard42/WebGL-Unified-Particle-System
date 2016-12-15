@@ -55,8 +55,8 @@ void main() {
     float tex1Depth = texture2D(u_tex1, voxelUV).z;
 
     if (voxelIdx.z < tex0Depth && voxelIdx.z > tex1Depth) {
-        gl_FragColor = vec4(1, 1, 0, 1);
+        gl_FragColor = vec4(1, 0, 0, 0);
     } else {
-        gl_FragColor = vec4(0, 0, 1, 1);
+        gl_FragColor = vec4(0, 0, 0, 0);
     }
 }

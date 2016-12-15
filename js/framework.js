@@ -22,13 +22,13 @@ var width, height;
 		});
     };
 
-    var update = function() {
+    R.update = function() {
         controls.update();
         stats.end();
         stats.begin();
         render();
         if (!aborted) {
-            requestAnimationFrame(update);
+            requestAnimationFrame(R.update);
         }
     };
 
@@ -257,8 +257,10 @@ var width, height;
             }         
             // Yes, this is a stupid and unfortunate way of starting the
             // setup, but the gltf needs to be loaded.
-            R.particleSetup(models[0]);
-            requestAnimationFrame(update);
+            R.model = models[0];
+            R.loadAllShaderPrograms();
+            //R.particleSetup();
+            //requestAnimationFrame(update);
 
         });
         resize();

@@ -3,11 +3,10 @@
 
     window.R = {};
 
-    R.particleSetup = function(model) {
-        R.model = model;
-
-        loadAllShaderPrograms();
-        R.scene = 1; // 0 = test, 1 = funnel, 2 = pile, 3 = push
+    R.particleSetup = function() {
+        //loadAllShaderPrograms();
+        //generateParticlesFromMesh("duck", 16);
+        R.scene = 4; // 0 = test, 1 = funnel, 2 = pile, 3 = push, 4 = duck
         if (R.scene == 0) {
             initParticleData();
             initRigidBodyData();
@@ -24,6 +23,10 @@
             initPushParticleData();
             initPushRigidBodyData();
         }
+        else if (R.scene == 4) {
+            initDuckParticleData();
+            initDuckRigidBodyData();
+        }
         initRender();
         setupBuffers('A');
         setupBuffers('RK2_A');
@@ -33,8 +36,7 @@
 
         generateGrid('A');
         generateGrid('B');
-
-        generateParticlesFromMesh("duck", 16)
+        requestAnimationFrame(R.update);
     };
 
     // Test Init
@@ -437,11 +439,12 @@
         R.bound = 0.5;
         R.gridBound = R.bound * 1.1;
 
-        R.k = 600.0;
+        R.k = 1200.0;
         R.kT = 5.0;
-        R.kBody = R.k * 1.1;
+        R.kBody = 1600.0;
         R.kBound = 2000.0;
-        R.n = 5.0;
+        R.n = 4.0;
+        R.nBody = R.n;
         R.nBound = 40.0;
         R.u = 0.4;
     }
@@ -701,6 +704,212 @@
         computeInertiaTensors();
     }
 
+    // Duck Init
+    var initDuckParticleData = function() {
+        var exp = 10;
+        if (exp % 2 != 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numParticles = Math.pow(2, exp);
+        R.particleSideLength = Math.sqrt(R.numParticles);
+
+        // Initialize particle positions
+        var positions = [];
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
+
+        var particleMass = 0.8;
+        for (var i = 0; i < R.numParticles; i++) {
+            positions.push( Math.random() * 2.0 - 1.0,
+                Math.random() * 1.0 + 0.5,
+                Math.random() * 2.0 - 1.0,
+                particleMass);
+        }
+        R.particlePositions = positions;
+
+        // Initialize particle velocities
+        var velocities = [];
+        var velBounds = {
+            min: 0.0,
+            max: 0.0
+        };
+        //velocities.push(1.0, 0.0, 0.0, 1.0);
+        for (var i = 0; i < R.numParticles; i++) {
+            velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 1.0);
+        }
+        R.particleVelocities = velocities;
+
+        // Initialize particle forces
+        var forces = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            forces.push(0.0, 0.0, 0.0, 1.0);
+        }
+        R.forces = forces;
+
+        // Initialize particle indices
+        var indices = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            indices[i] = i;
+        }
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+        R.indices = indexBuffer;
+
+        R.timeStep = 0.01;
+
+        R.particleSize = .1;
+        R.bound = 2.0;
+        R.gridBound = R.bound * 1.1;
+        R.time = 0.0;
+
+        R.k = 1200.0;
+        R.kT = 5.0;
+        R.kBody = 1600.0;
+        R.kBound = 2000.0;
+        R.n = 4.0;
+        R.nBody = R.n;
+        R.nBound = 40.0;
+        R.u = 0.4;
+    }
+
+    var initDuckRigidBodyData = function() {
+        R.rigidBodiesEnabled = true;
+        R.rigidBodiesStatic = false;
+        R.bodyParticleMass = 0.3;
+        var exp = 0;
+        if (exp % 2 != 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
+        R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
+        //var particlesPerBody = 85;
+        var particlesPerBody = 69;
+        if (particlesPerBody * R.numBodies > R.numParticles) {
+            throw new Error("More body particles than available particles!");
+        }
+
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
+        // Body positions
+        var positions = [];
+        for (var i = 0; i < R.numBodies; i++) {
+            positions.push( 0.0, 0.2, 0.0, particlesPerBody * i);
+        }
+        R.bodyPositions = positions;
+
+        // Body orientations
+        var orientations = [];
+        for (i = 0; i < R.numBodies; i++) {
+            orientations.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyOrientations = orientations;
+
+        // Body forces
+        var forces = [];
+        for (i = 0; i < R.numBodies; i++) {
+            forces.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyForces = forces;
+
+        // Body torques
+        var torques = [];
+        for (i = 0; i < R.numBodies; i++) {
+            torques.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyTorques = torques;
+
+        // Linear and angular velocities
+        var linearMomenta = Array(R.numBodies * 4).fill(0.0);
+        var angularMomenta = Array(R.numBodies * 4).fill(0.0);
+
+        // Relative particle positions (cube for now) and rigid body index
+        var relativePositions = Array(R.numParticles * 4).fill(-1.0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R["meshParticlesFBOVoxelduck"]);
+        var pixels = new Float32Array(R.gridTexSideLength * R.gridTexSideLength * 4);
+        gl.readPixels(0, 0, R.gridTexSideLength, R.gridTexSideLength, gl.RGBA, gl.FLOAT, pixels);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        if (R.rigidBodiesEnabled) {
+            for (var i = 0; i < R.numBodies; i++) {
+                var index = 0;
+                for (var k = 0; k < pixels.length; k++) {
+                    if (pixels[k] != 0) {
+                        var pixelIdx = k / 4;
+                        var x = pixelIdx % R.gridSideLength;
+                        x /= R.gridSideLength;
+                        x *= 2;
+                        x -= 1;
+
+                        var y = Math.floor(pixelIdx / R.gridSideLength) % R.gridSideLength;
+                        y /= R.gridSideLength;
+                        y *= 2;
+                        
+                        var z = Math.floor(pixelIdx / Math.pow(R.gridSideLength, 2));
+                        z /= R.gridSideLength;
+                        z *= 2;
+                        z -= 1;
+
+                        relativePositions[index] = x;
+                        relativePositions[index + 1] = y;
+                        relativePositions[index + 2] = z;
+                        relativePositions[index + 3] = i;
+                        R.particlePositions[index + 3] = R.bodyParticleMass;
+                        index += 4;
+                    }
+                }
+                linearMomenta[4*i + 3] = particlesPerBody
+            }
+        }
+        // if (R.rigidBodiesEnabled) {
+        //     var index = 0;
+        //     for (var i = 0; i < R.numBodies; i++) {
+        //         for (var x = 0; x < 8; x++) {
+        //             for (var z = 0; z < 3; z++) {
+        //                 for (var y = 0; y < (z == 1 ? 4 : 3); y++) {
+        //                     relativePositions[index] = - R.particleSize / 2.0 - R.particleSize * 3.0 + x * R.particleSize;
+        //                     relativePositions[index + 1] =  - R.particleSize / 2.0 - R.particleSize * 2.0 + y * R.particleSize;
+        //                     relativePositions[index + 2] = - R.particleSize + z * R.particleSize ;
+        //                     relativePositions[index + 3] = i;
+        //                     R.particlePositions[index + 3] = R.bodyParticleMass;
+        //                     index += 4;
+        //                 }
+        //             }
+        //         }
+        //         for (var x = 0; x < 7; x++) {
+        //             for (var y = 0; y < 3; y++) {
+        //                 for (var z = 0; z < 2; z++) {
+        //                     relativePositions[index] = -R.particleSize * 3.0 + x * R.particleSize;
+        //                     relativePositions[index + 1] = -R.particleSize * 2.0 + y * R.particleSize;
+        //                     relativePositions[index + 2] = - R.particleSize / 2.0 + z * R.particleSize;
+        //                     relativePositions[index + 3] = i;
+        //                     R.particlePositions[index + 3] = R.bodyParticleMass;
+        //                     index += 4;
+        //                 }
+        //             }
+        //         }
+        //         //relativePositions[index] = 0;
+        //         //relativePositions[index + 1] = 0;
+        //         //relativePositions[index + 2] = 0;
+        //         //relativePositions[index + 3] = i;
+        //         //R.particlePositions[index + 3] = R.bodyParticleMass;
+        //         linearMomenta[4*i + 3] = particlesPerBody;
+        //         index += 4;
+        //     }
+        // }
+        R.relativePositions = relativePositions;
+        R.linearMomenta = linearMomenta;
+        R.angularMomenta = angularMomenta;
+
+        computeInertiaTensors();
+    }
+
     var computeInertiaTensors = function() {
         var inertiaTensors = [];
         for (var i = 0; i < R.numBodies; i++) {
@@ -838,23 +1047,24 @@
         localR["meshParticlesFBO" + id] = gl.createFramebuffer();
         R["meshParticlesFBOVoxel" + id] = gl.createFramebuffer();
         var gridTexTileDimensions = Math.ceil(Math.sqrt(gridSideLength));
-        var gridTexSideLength = gridTexTileDimensions * gridSideLength;
+        R.gridTexSideLength = gridTexTileDimensions * gridSideLength;
+        R.gridSideLength = gridSideLength;
 
         localR["meshParticlesTex" + id + "0"] = createAndBindTexture(localR["meshParticlesFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gridTexSideLength, gridTexSideLength, null);
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.gridTexSideLength, R.gridTexSideLength, null);
         localR["meshParticlesTex" + id + "1"] = createAndBindTexture(localR["meshParticlesFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, gridTexSideLength, gridTexSideLength, null);
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, R.gridTexSideLength, R.gridTexSideLength, null);
         R["meshParticlesTex" + id] = createAndBindTexture(R["meshParticlesFBOVoxel" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gridTexSideLength, gridTexSideLength, null);
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, R.gridTexSideLength, R.gridTexSideLength, null);
 
         abortIfFramebufferIncomplete(localR["meshParticlesFBO" + id]);
         abortIfFramebufferIncomplete(R["meshParticlesFBOVoxel" + id]);
         
-        createAndBindDepthStencilBuffer(localR["meshParticlesFBO" + id], gridTexSideLength, gridTexSideLength);
+        createAndBindDepthStencilBuffer(localR["meshParticlesFBO" + id], R.gridTexSideLength, R.gridTexSideLength);
 
         // Draw model 2x on two textures. Once with near, once with far
         gl.useProgram(R.progParticleFromMeshDepth.prog);
-        gl.viewport(0, 0, gridTexSideLength, gridTexSideLength);
+        gl.viewport(0, 0, R.gridTexSideLength, R.gridTexSideLength);
         gl.bindFramebuffer(gl.FRAMEBUFFER, localR["meshParticlesFBO" + id]);
         
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
@@ -873,7 +1083,7 @@
         camera.updateMatrixWorld();
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);
         orthoMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-        debugger;
+
         gl.uniformMatrix4fv(R.progParticleFromMeshDepth.u_cameraMat, false, orthoMat.elements);
         readyModelForDraw(R.progParticleFromMeshDepth, R.model);
         
@@ -893,9 +1103,9 @@
 
         // Feed those textures into vertex shader, output 3D texture of voxels
         gl.useProgram(R.progParticleFromMeshVoxel.prog);
-        gl.viewport(0, 0, gridTexSideLength, gridTexSideLength);
+        gl.viewport(0, 0, R.gridTexSideLength, R.gridTexSideLength);
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["meshParticlesFBOVoxel" + id]);
-
+        gl.disable(gl.BLEND);
         gl.clear(gl.DEPTH_BUFFER_BIT);
 
         var orthoMatInv = new THREE.Matrix4();
@@ -904,7 +1114,7 @@
         gl.uniformMatrix4fv(R.progParticleFromMeshVoxel.u_cameraMat, false, orthoMat.elements);
         gl.uniformMatrix4fv(R.progParticleFromMeshVoxel.u_cameraMatInv, false, orthoMatInv.elements);
         gl.uniform1f(R.progParticleFromMeshVoxel.u_gridSideLength, gridSideLength);
-        gl.uniform1f(R.progParticleFromMeshVoxel.u_gridTexSideLength, gridTexSideLength);
+        gl.uniform1f(R.progParticleFromMeshVoxel.u_gridTexSideLength, R.gridTexSideLength);
         gl.uniform1f(R.progParticleFromMeshVoxel.u_gridWorldBounds, width);
         gl.uniform2fv(R.progParticleFromMeshVoxel.u_gridWorldLowerLeft, [camera.position.x - width * .5,
                                                                         camera.position.y - height * .5]);
@@ -918,7 +1128,7 @@
         gl.uniform1i(R.progParticleFromMeshVoxel.u_tex1, 1);
 
         renderFullScreenQuad(R.progParticleFromMeshVoxel);
-
+        gl.enable(gl.BLEND);
         // // Temporary debug
         // gl.useProgram(R.progDebug.prog);
         // gl.viewport(0, 0, 128 * 6, 128 * 2);
@@ -939,6 +1149,7 @@
 
         // renderFullScreenQuad(R.progDebug);
 
+        R.particleSetup();
         // Output 1s or 0s into 3D texture
     }
 
@@ -991,7 +1202,7 @@
     /**
      * Loads all of the shader programs used in the pipeline.
      */
-    var loadAllShaderPrograms = function() {
+    R.loadAllShaderPrograms = function() {
 
 		// Load collision fragment shader
 		loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 'glsl/particle/forces.frag.glsl',
@@ -1304,6 +1515,8 @@
                 p.a_position = gl.getUniformLocation(prog, 'a_position');                
                 // Save the object into this variable for access later
                 R.progParticleFromMeshVoxel = p;
+                generateParticlesFromMesh("duck", 16);
+    
             }
         );
     };

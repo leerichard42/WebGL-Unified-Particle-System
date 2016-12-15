@@ -7,7 +7,8 @@
 		!R.progPhysics ||
 		!R.progDebug ||
 		!R.progAmbient ||
-        !R.progSetup) {
+        !R.progSetup ||
+        !R.progGrid) {
 			console.log('waiting for programs to load...');
 			return;
 		}
