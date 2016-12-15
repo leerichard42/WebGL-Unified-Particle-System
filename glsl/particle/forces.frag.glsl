@@ -79,7 +79,7 @@ void main() {
     vec3 pos = posTexel.xyz;
     vec3 vel = velTexel.xyz;
 
-    if (u_scene == 1) {
+    if (false) {
          // Naive loop through all particles
          // Hack because WebGL cannot compare loop index to non-constant expression
          // Maximum of 1024x1024 = 1048576 for now

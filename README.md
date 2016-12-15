@@ -90,7 +90,7 @@ Finally, the values in this texture are converted to relative positions and fed 
 #### Particle Mesh Generation
 The overhead of generating the particle mesh for the duck comes only at the beginning of loading the program. Since its values are stored in a texture, it could even be loaded from a server in order to save the computer some extra computation. The actual time it takes to render the two depth peel images is very small, hovering around 3-4ms as the grid size increased. What takes the most time in our implementation is actually a javascript function which calls `gl.readPixels` on the texture in order to buffer them into another texture. This operation could be done by a fragment shader, and, had time permitted, would have been done so. However, since the performance hit for even a large 128x128x128 grid is under 1 second, the extra performance savings might not warrant the inclusion of another shader. The data can be seen below:
 
-![](voxel_perf.png)
+![](img/voxel_perf.png)
 
 Notice how the blue area in the stacked bars is barely visible; the depth images render very quickly.
 
