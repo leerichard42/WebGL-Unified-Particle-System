@@ -14,7 +14,10 @@ uniform sampler2D u_bodyRotTex;
 uniform sampler2D u_relPosTex;
 uniform sampler2D u_linearMomentumTex;
 uniform sampler2D u_angularMomentumTex;
+uniform int u_particleSide;
 uniform int u_bodySide;
+uniform float u_time;
+uniform int u_scene;
 
 varying vec2 v_uv;
 
@@ -71,6 +74,9 @@ void main() {
 
         vec3 currRelPos = rotate_pos(relPosTexel.xyz, bodyRot);
         vec3 pos = bodyPos.xyz + currRelPos;
+        if (u_scene == 3) {
+            pos += vec3(0.0, 0.0, 0.7 * sin(u_time/2.0));
+        }
         vec3 vel = linearVel + cross(angularMomentum, currRelPos);
         gl_FragData[0] = vec4(pos, mass);
         gl_FragData[1] = vec4(vel, 1.0);
@@ -78,8 +84,23 @@ void main() {
         gl_FragData[3] = relPosTexel;
     }
     else {
-        gl_FragData[0] = posTexel;
-        gl_FragData[1] = velTexel;
+        float y = (v_uv.y - 0.5 / float(u_particleSide)) * float(u_particleSide);
+        float x = (v_uv.x - 0.5 / float(u_particleSide)) * float(u_particleSide);
+        int index = int(y * float(u_particleSide) + x);
+
+        if (u_scene == 1 && int(velTexel.w) == 0 &&
+            abs(u_time * 500.0) > float(u_particleSide*u_particleSide - index)) {
+//            float t = clamp(abs(cos(u_time)), 0.5, 1.0) * sign(cos(u_time));
+            float t = 0.3 + (cos(u_time * 2.0) + 1.0) * 0.25;
+            gl_FragData[0] = vec4(0.29 * t * sin(float(index)),
+                1.7,
+                0.29 * t * cos(float(index)), posTexel.w);
+            gl_FragData[1] = vec4(0.0, 0.0, 0.0, 1.0);
+        }
+        else {
+            gl_FragData[0] = posTexel;
+            gl_FragData[1] = velTexel;
+        }
         gl_FragData[2] = forceTexel;
         gl_FragData[3] = relPosTexel;
     }

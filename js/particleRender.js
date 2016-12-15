@@ -14,7 +14,7 @@
 
         if (R.rigidBodiesEnabled) {
             // Ping-pong old body state from B to A after computing the particle locations
-            computeBodyParticles(state, R.progSetup, 'B', 'A');
+            computeBodyParticles(state, R.progSetup, 'B', 'B', 'A');
             if (cfg.pingPong) {
                 pingPongBody('A', 'B');
             }
@@ -30,20 +30,46 @@
             calculateForces(state, R.progPhysics, 'A', 'A', 'RK2_B');
             updateEuler(state, 'A', 'RK2_B', 'RK2_A');
 
-            //updateBodyEuler(state, 'A', 'RK2_B', 'RK2_A');
-            //computeBodyParticles
-            
-            updateGrid(state, R.progGrid, 'B', 'RK2_A');
-            calculateForces(state, R.progPhysics, 'RK2_A', 'B', 'A');
-            updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
+            if (R.rigidBodiesEnabled && !R.rigidBodiesStatic) {
+                //calculateBodyForces(state, 'A', 'RK2_B', 'RK2_C');
+                //updateBodyEuler(state, 'A', 'RK2_C', 'B');
+                //
+                //updateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
+                //calculateForces(state, R.progPhysics, 'RK2_A', 'B', 'A');
+                //updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
 
-            //updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_B', 'RK2_A', 'A', 'B');
+
+                //A has pp1, pv1, bp1, bv1 - do not write
+                //rk2a has pp2, pv2, pf1, bp1, bv1
+                //rk2b has pp1, pv1, pf1, bp1, bv1
+                calculateBodyForces(state, 'A', 'RK2_B', 'RK2_C');
+                //rk2a has pp2, pv2, pf1, bp1, bv1
+                //rk2c has bp1, bv1, bf1
+                updateBodyEuler(state, 'A', 'RK2_C', 'RK2_A');
+                //rk2a has pp2, pv2, pf1, bp2, bv2, bf1 - do not write
+                computeBodyParticles(state, R.progSetup, 'RK2_A', 'RK2_A', 'RK2_B');
+                //rk2b has pp2b, pv2, pf1, bp2, bv2, bf1
+                updateGrid(state, R.progGrid, 'RK2_B', 'RK2_B');
+                calculateForces(state, R.progPhysics, 'RK2_B', 'RK2_B', 'RK2_C');
+                //rk2c has pp2b, pv2, pf2, bp2, bv2, bf1
+                updateParticlesRK2(state, R.progRK2, 'A', 'A', 'RK2_A', 'RK2_C', 'RK2_C', 'B');
+
+                calculateBodyForces(state, 'RK2_C', 'RK2_C', 'RK2_B');
+                updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_A', 'RK2_B', 'RK2_B', 'B');
+            }
+            else {
+                //A has pp1, pv1 - do not write
+                //RK2_B has pf1
+                //RK2_A has pp2, pv2, pf1
+                updateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
+                calculateForces(state, R.progPhysics, 'RK2_A', 'RK2_A', 'RK2_C');
+                //RK2_C has pf2
+                updateParticlesRK2(state, R.progRK2, 'A', 'A', 'RK2_A', 'RK2_A', 'RK2_C', 'B');
+            }
+
         }
 
         //updateEuler(state, 'A', 'RK2_B', 'B');
-        if (R.rigidBodiesEnabled) {
-            updateBodyEuler(state, 'A', 'RK2_B', 'B');
-        }
 
         // Render the particles
         renderParticles(state, R.progParticle);
@@ -59,7 +85,7 @@
         }
     };
 
-    var computeBodyParticles = function(state, prog, source, target) {
+    var computeBodyParticles = function(state, prog, particleSource, bodySource, target) {
         gl.useProgram(prog.prog);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
@@ -67,15 +93,22 @@
         //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
         gl.uniform1i(prog.u_bodySide, R.bodySideLength);
+        gl.uniform1f(prog.u_time, R.time);
+        gl.uniform1i(prog.u_scene, R.scene);
+        if (R.scene == 3 || R.scene == 1) {
+            R.time += R.timeStep;
+            //console.log("TIME: " + R.time);
+        }
 
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_bodyPosTex,
             prog.u_bodyRotTex, prog.u_relPosTex,
             prog.u_linearMomentumTex, prog.u_angularMomentumTex],
-            [R["particlePosTex" + source], R["particleVelTex" + source], R["forceTex" + source],
-                R["bodyPosTex" + source],
-                R["bodyRotTex" + source], R["relativePosTex" + source],
-                R["linearMomentumTex" + source], R["angularMomentumTex" + source]]);
+            [R["particlePosTex" + particleSource], R["particleVelTex" + particleSource], R["forceTex" + particleSource],
+                R["bodyPosTex" + bodySource], R["bodyRotTex" + bodySource],
+                R["relativePosTex" + bodySource],
+                R["linearMomentumTex" + bodySource], R["angularMomentumTex" + bodySource]]);
 
         renderFullScreenQuad(prog);
         gl.enable(gl.BLEND);
@@ -154,6 +187,16 @@
         gl.uniform1f(prog.u_dt, R.timeStep);
         gl.uniform1f(prog.u_bound, R.bound);
 
+        gl.uniform1f(prog.u_k, R.k);
+        gl.uniform1f(prog.u_kT, R.kT);
+        gl.uniform1f(prog.u_kBody, R.kBody);
+        gl.uniform1f(prog.u_kBound, R.kBound);
+        gl.uniform1f(prog.u_n, R.n);
+        gl.uniform1f(prog.u_nBody, R.nBody);
+        gl.uniform1f(prog.u_nBound, R.nBound);
+        gl.uniform1f(prog.u_u, R.u);
+        gl.uniform1i(prog.u_scene, R.scene);
+
         // Fill in grid uniforms
         gl.uniform1f(prog.u_gridSideLength, R.gridBound * 2.); // WARNING: R.bound + constant
         gl.uniform1i(prog.u_gridNumCellsPerSide, R.gridInfo.numCellsPerSide);
@@ -194,6 +237,30 @@
         gl.enable(gl.BLEND);
     }
 
+    var calculateBodyForces = function(state, stateSource, forceSource, target) {
+        var prog = R.progBodyForces;
+        gl.useProgram(prog.prog);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R["bodyFBO" + target]);
+        gl.disable(gl.BLEND);
+        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.viewport(0, 0, R.bodySideLength, R.bodySideLength);
+
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
+
+        // Program attributes and texture buffers need to be in
+        // the same indices in the following arrays
+        bindTextures(prog, [prog.u_posTex, prog.u_forceTex, prog.u_bodyPosTex,
+                prog.u_bodyRotTex, prog.u_bodyForceTex, prog.u_bodyTorqueTex,
+                prog.u_linearMomentumTex, prog.u_angularMomentumTex],
+            [R["particlePosTex" + stateSource], R["forceTex" + forceSource], R["bodyPosTex" + stateSource],
+                R["bodyRotTex" + stateSource], R["bodyForceTex" + forceSource], R["bodyTorqueTex" + forceSource],
+                R["linearMomentumTex" + stateSource], R["angularMomentumTex" + stateSource]]);
+
+        renderFullScreenQuad(prog);
+        gl.enable(gl.BLEND);
+    }
+
     var updateBodyEuler = function(state, stateSource, forceSource, target) {
         var prog = R.progBodyEuler;
         gl.useProgram(prog.prog);
@@ -209,11 +276,12 @@
 
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
-        bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_bodyPosTex,
-            prog.u_bodyRotTex, prog.u_linearMomentumTex, prog.u_angularMomentumTex],
-            [R["particlePosTex" + stateSource], R["particleVelTex" + stateSource], R["forceTex" + forceSource],
-                R["bodyPosTex" + stateSource], R["bodyRotTex" + stateSource], R["linearMomentumTex" + stateSource],
-                R["angularMomentumTex" + stateSource]]);
+        bindTextures(prog, [prog.u_posTex, prog.u_bodyPosTex,
+            prog.u_bodyRotTex, prog.u_bodyForceTex, prog.u_bodyTorqueTex,
+            prog.u_linearMomentumTex, prog.u_angularMomentumTex],
+            [R["particlePosTex" + stateSource],
+                R["bodyPosTex" + stateSource], R["bodyRotTex" + stateSource], R["bodyForceTex" + forceSource],
+                R["bodyTorqueTex" + forceSource], R["linearMomentumTex" + stateSource], R["angularMomentumTex" + stateSource]]);
 
         renderFullScreenQuad(prog);
         gl.enable(gl.BLEND);
@@ -256,10 +324,16 @@
 
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
-        bindTextures(prog, [prog.u_bodyPosTex, prog.u_linearMomentumTex1, prog.u_forceTex1, prog.u_linearMomentumTex2,
-                prog.u_forceTex2],
-            [R["bodyPosTex" + pos], R["linearMomentumTex" + vel_1], R["forceTex" + force_1],
-                R["linearMomentumTex" + vel_2], R["forceTex" + force_2]]);
+        bindTextures(prog, [prog.u_posTex, prog.u_bodyPosTex, prog.u_bodyRotTex,
+                prog.u_forceTex_1, prog.u_forceTex_2,
+                prog.u_torqueTex_1, prog.u_torqueTex_2,
+                prog.u_linearMomentumTex_1, prog.u_linearMomentumTex_2,
+            prog.u_angularMomentumTex_1, prog.u_angularMomentumTex_2],
+            [R["particlePosTex" + pos], R["bodyPosTex" + pos], R["bodyRotTex" + pos],
+                R["bodyForceTex" + force_1], R["bodyForceTex" + force_2],
+                R["bodyTorqueTex" + force_1], R["bodyTorqueTex" + force_2],
+                R["linearMomentumTex" + vel_1], R["linearMomentumTex" + vel_2],
+                R["angularMomentumTex" + vel_1], R["angularMomentumTex" + vel_2]]);
 
         renderFullScreenQuad(prog);
         gl.enable(gl.BLEND);
@@ -325,6 +399,8 @@
         swap('bodyFBO', a, b);
         swap('bodyPosTex', a, b);
         swap('bodyRotTex', a, b);
+        swap('bodyForceTex', a, b);
+        swap('bodyTorqueTex', a, b);
         swap('linearMomentumTex', a, b);
         swap('angularMomentumTex', a, b);
     }
@@ -356,10 +432,10 @@
             bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_gridTex,
                 prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_linearMomentumTex,
                 prog.u_angularMomentumTex,
-                prog.u_relPosTex],
+                prog.u_relPosTex, prog.u_bodyForceTex, prog.u_bodyTorqueTex],
                 [R.particlePosTexA, R.particleVelTexA, R.forceTexRK2_B, R.gridTexA,
                     R.bodyPosTexA, R.bodyRotTexA, R.linearMomentumTexA, R.angularMomentumTexA,
-                    R.relativePosTexA]);
+                    R.relativePosTexA, R.bodyForceTexRK2_B, R.bodyTorqueTexRK2_B]);
             renderFullScreenQuad(R.progDebug);
         }
     }

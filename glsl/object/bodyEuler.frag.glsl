@@ -7,10 +7,10 @@ precision highp int;
 //run on each rigidbody
 
 uniform sampler2D u_posTex;
-uniform sampler2D u_velTex;
-uniform sampler2D u_forceTex;
 uniform sampler2D u_bodyPosTex;
 uniform sampler2D u_bodyRotTex;
+uniform sampler2D u_bodyForceTex;
+uniform sampler2D u_bodyTorqueTex;
 uniform sampler2D u_linearMomentumTex;
 uniform sampler2D u_angularMomentumTex;
 uniform int u_particleSide;
@@ -36,13 +36,13 @@ mat3 rot_from_quat(vec4 q) {
 }
 
 vec4 quat_mult(vec4 q1, vec4 q2) {
-  vec4 qr;
-  qr.x = (q1.w * q2.x) + (q1.x * q2.w) + (q1.y * q2.z) - (q1.z * q2.y);
-  qr.y = (q1.w * q2.y) - (q1.x * q2.z) + (q1.y * q2.w) + (q1.z * q2.x);
-  qr.z = (q1.w * q2.z) + (q1.x * q2.y) - (q1.y * q2.x) + (q1.z * q2.w);
-  qr.w = (q1.w * q2.w) - (q1.x * q2.x) - (q1.y * q2.y) - (q1.z * q2.z);
-  return qr;
-}
+   vec4 qr;
+   qr.x = (q1.w * q2.x) + (q1.x * q2.w) + (q1.y * q2.z) - (q1.z * q2.y);
+   qr.y = (q1.w * q2.y) - (q1.x * q2.z) + (q1.y * q2.w) + (q1.z * q2.x);
+   qr.z = (q1.w * q2.z) + (q1.x * q2.y) - (q1.y * q2.x) + (q1.z * q2.w);
+   qr.w = (q1.w * q2.w) - (q1.x * q2.x) - (q1.y * q2.y) - (q1.z * q2.z);
+   return qr;
+ }
 
 mat3 transpose(mat3 m) {
   return mat3(m[0][0], m[1][0], m[2][0],
@@ -53,27 +53,13 @@ mat3 transpose(mat3 m) {
 void main() {
     vec3 bodyPos = texture2D(u_bodyPosTex, v_uv).xyz;
     vec4 bodyRot = texture2D(u_bodyRotTex, v_uv);
+    vec4 bodyForce = texture2D(u_bodyForceTex, v_uv);
+    vec4 bodyTorque = texture2D(u_bodyTorqueTex, v_uv);
     vec3 linearMomentum = texture2D(u_linearMomentumTex, v_uv).xyz;
     vec3 angularMomentum = texture2D(u_angularMomentumTex, v_uv).xyz;
+    float bodyMass = texture2D(u_angularMomentumTex, v_uv).w;
     float startIndex = texture2D(u_bodyPosTex, v_uv).w;
     float numParticles = texture2D(u_linearMomentumTex, v_uv).w;
-
-    vec3 totalForce = vec3(0.0);
-    vec3 totalTorque = vec3(0.0);
-    for (int i = 0; i < 1048576; i++) {
-        if (i < int(startIndex))
-            continue;
-        if (i == int(startIndex + numParticles))
-            break;
-
-        vec2 uv = getUV(i, u_particleSide);
-        vec3 pos = texture2D(u_posTex, uv).xyz;
-        vec3 vel = texture2D(u_velTex, uv).xyz;
-        vec3 force = texture2D(u_forceTex, uv).xyz;
-        totalForce += force;
-        vec3 rel_pos = pos - bodyPos;
-        totalTorque += cross(rel_pos, force);
-    }
 
     float mass = texture2D(u_posTex, getUV(int(startIndex), u_particleSide)).w;
     //update position
@@ -107,12 +93,15 @@ void main() {
     deltaQuat.xyz = theta * s;
     gl_FragData[1] = quat_mult(deltaQuat, bodyRot);
 
+    gl_FragData[2] = bodyForce;
+    gl_FragData[3] = bodyTorque;
+
     //update linear velocity
-    linearMomentum += totalForce * u_dt;
-    gl_FragData[2] = vec4(linearMomentum, numParticles);
+    linearMomentum += bodyForce.xyz * u_dt;
+    gl_FragData[4] = vec4(linearMomentum, numParticles);
 
     //update angular momentum
-    angularMomentum *= 0.95; //damping
-    angularMomentum += totalTorque * u_dt;
-    gl_FragData[3] = vec4(angularMomentum, 0.0);
+    angularMomentum *= 0.9; //damping
+    angularMomentum += bodyTorque.xyz * u_dt;
+    gl_FragData[5] = vec4(angularMomentum, 0.0);
 }

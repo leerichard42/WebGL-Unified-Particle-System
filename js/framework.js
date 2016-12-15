@@ -258,7 +258,7 @@ var width, height;
             // Yes, this is a stupid and unfortunate way of starting the
             // setup, but the gltf needs to be loaded.
             R.particleSetup(models[0]);
-            //requestAnimationFrame(update);
+            requestAnimationFrame(update);
 
         });
         resize();

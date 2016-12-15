@@ -13,6 +13,21 @@ uniform int u_particleSide;
 uniform float u_diameter;
 uniform float u_dt;
 uniform float u_bound;
+uniform int u_scene;
+
+// Spring coefficients
+uniform float u_k;
+uniform float u_kT;
+uniform float u_kBody;
+uniform float u_kBound;
+
+// Damping coefficient
+uniform float u_n;
+uniform float u_nBody;
+uniform float u_nBound;
+
+// Friction coefficient
+uniform float u_u;
 
 // Grid uniforms
 uniform float u_gridSideLength;
@@ -22,6 +37,8 @@ uniform int u_gridTexTileDimensions;
 uniform float u_gridCellSize;
 
 varying vec2 v_uv;
+
+const float EPSILON = 0.0000001;
 
 vec2 uvFrom3D(vec3 pos) {
     float u = pos.x + float(u_gridNumCellsPerSide) * (pos.z - float(u_gridTexTileDimensions) * floor(pos.z / float(u_gridTexTileDimensions)));
@@ -46,93 +63,116 @@ void main() {
     float mass = posTexel.w;
 
     // Spring coefficient
-    float k = 4000.0;
-    float bounds_k = 2000.0;
+    float k = u_k;
+    float k_t = u_kT;
+    float bounds_k = u_kBound;
 
     // Damping coefficient
-    float n = 10.0;
-    float bounds_n = 40.0;
+    float n = u_n;
+    float bounds_n = u_nBound;
     // Friction coefficient
-    float u = 0.4;
+    float u = u_u;
 
     vec3 spring_total = vec3(0.0);
     vec3 damping_total = vec3(0.0);
+    vec3 shear_total = vec3(0.0);
     vec3 pos = posTexel.xyz;
     vec3 vel = velTexel.xyz;
-    
-    // // Naive loop through all particles
-    // // Hack because WebGL cannot compare loop index to non-constant expression
-    // // Maximum of 1024x1024 = 1048576 for now
-    // for (int i = 0; i < 1048576; i++) {
-    //     if (i == u_particleSide * u_particleSide)
-    //         break;
 
-    //     vec2 uv = getUV(i, u_particleSide);
+    if (u_scene == 1) {
+         // Naive loop through all particles
+         // Hack because WebGL cannot compare loop index to non-constant expression
+         // Maximum of 1024x1024 = 1048576 for now
+         for (int i = 0; i < 1048576; i++) {
+             if (i == u_particleSide * u_particleSide)
+                 break;
 
-    //     vec3 p_pos = texture2D(u_posTex, uv).xyz;
-    //     if (length(p_pos - pos) < 0.001)
-    //         continue;
-    //     vec3 p_vel = texture2D(u_velTex, uv).xyz;
+             vec2 uv = getUV(i, u_particleSide);
 
-    //     vec3 rel_pos = p_pos - pos;
-    //     vec3 rel_vel = p_vel - vel;
-    //     if (length(rel_pos) < u_diameter) {
-    //         spring_total += -k * (u_diameter - length(rel_pos)) * normalize(rel_pos);
-    //         damping_total += n * rel_vel;
-    //     }
-    // }
+             vec3 p_pos = texture2D(u_posTex, uv).xyz;
+             if (length(p_pos - pos) < 0.001)
+                 continue;
+             vec3 p_vel = texture2D(u_velTex, uv).xyz;
 
-    //////////
-    // GRID //
-    //////////
-    // Loop through 27 cells in grid
-    vec3 voxelIndex = (vec3(pos) - vec3(-u_gridSideLength / 2., -u_gridSideLength / 2., -u_gridSideLength / 2.)) / u_gridCellSize;
-    voxelIndex = floor(voxelIndex);
-    for (int i = -1; i < 2; i++) {
-        for (int i2 = -1; i2 < 2; i2++) {
-            for (int i3 = -1; i3 < 2; i3++) {
-                vec3 neighborVoxelIndex = voxelIndex + vec3(i, i2, i3);
-                if (neighborVoxelIndex.x < 0. || neighborVoxelIndex.y < 0. || neighborVoxelIndex.z < 0.) {
-                    continue;
-                }
-                if (neighborVoxelIndex.x >= float(u_gridNumCellsPerSide) || neighborVoxelIndex.y >= float(u_gridNumCellsPerSide) ||
-                    neighborVoxelIndex.z >= float(u_gridNumCellsPerSide)) {
-                        continue;
-                }
-
-                vec2 neighborGridUV = uvFrom3D(neighborVoxelIndex);
-
-                vec4 p_idx = texture2D(u_gridTex, neighborGridUV);
-                for (int c = 0; c < 4; c++) {
-                    if (p_idx[c] == 0.) {
+             vec3 rel_pos = p_pos - pos;
+             vec3 rel_vel = p_vel - vel;
+             if (length(rel_pos) < u_diameter) {
+                 int rb_idx = int(texture2D(u_relPosTex, uv));
+                 if (rb_idx > -1) {
+                     k = u_kBody;
+                     n = u_nBody;
+                 }
+                 spring_total += -k * (u_diameter - length(rel_pos)) * normalize(rel_pos);
+                 damping_total += n * rel_vel;
+             }
+         }
+    }
+    else {
+        //////////
+        // GRID //
+        //////////
+        // Loop through 27 cells in grid
+        vec3 voxelIndex = (vec3(pos) - vec3(-u_gridSideLength / 2., -u_gridSideLength / 2., -u_gridSideLength / 2.)) / u_gridCellSize;
+        voxelIndex = floor(voxelIndex);
+        for (int i = -1; i < 2; i++) {
+            for (int i2 = -1; i2 < 2; i2++) {
+                for (int i3 = -1; i3 < 2; i3++) {
+                    vec3 neighborVoxelIndex = voxelIndex + vec3(i, i2, i3);
+                    if (neighborVoxelIndex.x < 0. || neighborVoxelIndex.y < 0. || neighborVoxelIndex.z < 0.) {
                         continue;
                     }
-                    vec2 uv;
-                    // Kind of hacky - setting particle with index 0.0 to 0.5
-                    if (p_idx[c] == .5) {
-                        uv = getUV(0, u_particleSide);
-                    } else {
-                        uv = getUV(int(p_idx[c]), u_particleSide);
+                    if (neighborVoxelIndex.x >= float(u_gridNumCellsPerSide) || neighborVoxelIndex.y >= float(u_gridNumCellsPerSide) ||
+                        neighborVoxelIndex.z >= float(u_gridNumCellsPerSide)) {
+                            continue;
                     }
 
-                    vec3 p_pos = texture2D(u_posTex, uv).xyz;
-                    if (length(p_pos - pos) < 0.0001)
-                        continue;
-                    vec3 p_vel = texture2D(u_velTex, uv).xyz;
+                    vec2 neighborGridUV = uvFrom3D(neighborVoxelIndex);
 
-                    vec3 rel_pos = p_pos - pos;
-                    vec3 rel_vel = p_vel - vel;
-                    if (length(rel_pos) < u_diameter) {
-                        spring_total += -k * (u_diameter - length(rel_pos)) * normalize(rel_pos);
-                        damping_total += n * rel_vel;
+                    vec4 p_idx = texture2D(u_gridTex, neighborGridUV);
+                    for (int c = 0; c < 4; c++) {
+                        if (p_idx[c] == 0.) {
+                            continue;
+                        }
+                        vec2 uv;
+                        // Kind of hacky - setting particle with index 0.0 to 0.5
+                        if (abs(p_idx[c] - .5) < EPSILON) {
+                            uv = getUV(0, u_particleSide);
+                        } else {
+                            uv = getUV(int(p_idx[c]), u_particleSide);
+                        }
+
+                        vec3 p_pos = texture2D(u_posTex, uv).xyz;
+                        int rb_idx = int(texture2D(u_relPosTex, uv));
+
+                        if (length(p_pos - pos) < 0.0001 || (rb_idx > -1 && rb_idx == index))
+                            continue;
+                        vec3 p_vel = texture2D(u_velTex, uv).xyz;
+
+                        vec3 rel_pos = p_pos - pos;
+                        if (length(rel_pos) < u_diameter) {
+                            if (rb_idx > -1) {
+                                k = u_kBody;
+                                n = u_nBody;
+                            }
+                            spring_total += -k * (u_diameter - length(rel_pos)) * normalize(rel_pos);
+    //                        if (rb_idx > -1) {
+    //                            spring_total.y += 10.0;
+    //                        }
+
+                            vec3 rel_vel = p_vel - vel;
+                            damping_total += n * rel_vel;
+
+    //                        vec3 rel_vel_tangent = rel_vel - dot(rel_vel, normalize(rel_pos)) * normalize(rel_pos);
+    //                        shear_total += k_t * rel_vel_tangent;
+                        }
                     }
                 }
             }
         }
+        // END GRID
     }
-    // END GRID
 
-    vec3 force = spring_total + damping_total;
+    vec3 force = spring_total + damping_total + shear_total;
     force.y -= 9.8 * mass;
 
     //Predict next position
@@ -157,8 +197,16 @@ void main() {
         force.z -= bounds_n * vel.z;
     }
 
+    // reduce popping
+    force = clamp(force, -100.0, 100.0);
+
     gl_FragData[0] = posTexel;
     gl_FragData[1] = velTexel;
-    gl_FragData[2] = vec4(force, 1.0); //force output
+    if (int(velTexel.w) == 1) {
+        gl_FragData[2] = vec4(force, 1.0); //force output
+    }
+    else {
+        gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0);
+    }
     gl_FragData[3] = relPosTexel;
 }
