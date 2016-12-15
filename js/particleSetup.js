@@ -18,7 +18,7 @@
     R.particleSetup = function() {
         //loadAllShaderPrograms();
         //generateParticlesFromMesh("duck", 16);
-        R.scene = 3; // 0 = test, 1 = funnel, 2 = pile, 3 = push, 4 = duck
+        R.scene = 4; // 0 = test, 1 = funnel, 2 = pile, 3 = push, 4 = duck
         if (R.scene == 0) {
             initParticleData();
             initRigidBodyData();
@@ -36,8 +36,11 @@
             initPushRigidBodyData();
         }
         else if (R.scene == 4) {
+            var a = performance.now();
             initDuckParticleData();
             initDuckRigidBodyData();
+            var b = performance.now();
+            console.log("Duck generation took: " + (b-a) + " ms");
         }
         initRender();
         R.setupBuffers();
@@ -1019,7 +1022,6 @@
             });
             return;
         }
-
         var localR = {};
         localR["meshParticlesFBO" + id] = gl.createFramebuffer();
         R["meshParticlesFBOVoxel" + id] = gl.createFramebuffer();
@@ -1125,7 +1127,6 @@
         // gl.uniform1i(R.progDebug.u_voxel, 2);
 
         // renderFullScreenQuad(R.progDebug);
-
         R.particleSetup();
         // Output 1s or 0s into 3D texture
     }

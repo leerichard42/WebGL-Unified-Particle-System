@@ -70,17 +70,25 @@ Defining rigid bodies by hand is quite tedious. We implemented a method of gener
 ![](img/depth_ducks.PNG)
 
 ![](http://http.developer.nvidia.com/GPUGems3/elementLinks/29fig04.jpg)
+
 (Image credit: [NVIDIA Gpu Gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html))
 
-Next, we run a fragment shader which calculates a unique voxel position for its `uv` coordinate. This is similar to the 3D grid since it is a 2D representation of a 3D cube. The fragment shader then calculates if the 3D position of the voxel is in between the two depth peel images--if it is, it writes a `1` to a texture. This texture looks something like this for the duck:
-
-![](img/duck_final.PNG)
-
-Finally, the values in this texture are converted to relative positions and fed into the rigid body shaders. This process allows us to define different resolutions of meshes--a high resolution screenshot of the duck is shown below.
+Next, we run a fragment shader which calculates a unique voxel position for its `uv` coordinate. This is similar to the 3D grid since it is a 2D representation of a 3D cube. The fragment shader then calculates if the 3D position of the voxel is in between the two depth peel images--if it is, it writes a `1` to a texture. Unlike the scattering operation of the uniform grid, we can run this as a gather operation on every voxel grid coordinate. This texture looks something like this for the duck:
 
 ![](img/duck_voxel.PNG)
 
+Finally, the values in this texture are converted to relative positions and fed into the rigid body shaders. This process allows us to define different resolutions of meshes--a high resolution screenshot of the duck is shown below.
+
+![](img/duck_final.PNG)
+
 ## Performance Analysis
+
+#### Particle Mesh Generation
+The overhead of generating the particle mesh for the duck comes only at the beginning of loading the program. Since its values are stored in a texture, it could even be loaded from a server in order to save the computer some extra computation. The actual time it takes to render the two depth peel images is very small, hovering around 3-4ms as the grid size increased. What takes the most time in our implementation is actually a javascript function which calls `gl.readPixels` on the texture in order to buffer them into another texture. This operation could be done by a fragment shader, and, had time permitted, would have been done so. However, since the performance hit for even a large 128x128x128 grid is under 1 second, the extra performance savings might not warrant the inclusion of another shader. The data can be seen below:
+
+![](voxel_perf.jpg)
+
+Notice how the blue area in the stacked bars is barely visible; the depth images render very quickly.
 
 - Tested on:
  * Firefox 49.0.2, Windows 10, i5-3570K @ 3.40GHz 16GB, Radeon HD 7900
