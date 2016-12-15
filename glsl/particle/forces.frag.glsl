@@ -17,6 +17,7 @@ uniform float u_bound;
 // Spring coefficients
 uniform float u_k;
 uniform float u_kT;
+uniform float u_kBody;
 uniform float u_kBound;
 
 // Damping coefficient
@@ -141,9 +142,12 @@ void main() {
                     vec3 rel_pos = p_pos - pos;
                     if (length(rel_pos) < u_diameter) {
                         if (rb_idx > -1) {
-                            k *= 1.1;
+                            k = u_kBody;
                         }
                         spring_total += -k * (u_diameter - length(rel_pos)) * normalize(rel_pos);
+//                        if (rb_idx > -1) {
+//                            spring_total.y += 10.0;
+//                        }
 
                         vec3 rel_vel = p_vel - vel;
                         damping_total += n * rel_vel;

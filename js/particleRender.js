@@ -95,7 +95,10 @@
 
         gl.uniform1i(prog.u_bodySide, R.bodySideLength);
         gl.uniform1f(prog.u_time, R.time);
-        R.time += R.timeStep;
+        gl.uniform1i(prog.u_scene, R.scene);
+        if (R.scene == 3) {
+            R.time += R.timeStep;
+        }
 
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_bodyPosTex,
             prog.u_bodyRotTex, prog.u_relPosTex,
@@ -184,6 +187,7 @@
 
         gl.uniform1f(prog.u_k, R.k);
         gl.uniform1f(prog.u_kT, R.kT);
+        gl.uniform1f(prog.u_kBody, R.kBody);
         gl.uniform1f(prog.u_kBound, R.kBound);
         gl.uniform1f(prog.u_n, R.n);
         gl.uniform1f(prog.u_nBound, R.nBound);

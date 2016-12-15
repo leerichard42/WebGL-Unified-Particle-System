@@ -205,11 +205,11 @@
             max: 2
         };
 
-        var particleMass = 1.0;
+        var particleMass = 0.5;
         for (var i = 0; i < R.numParticles; i++) {
-            positions.push( Math.random() * 0.2 - 0.1,
-                Math.random() * 1.0 + 0.0,
-                Math.random() * 0.2 - 0.1,
+            positions.push(- 0.2,
+                1.5 + (R.numParticles - i) * 0.05,
+                - 0.05,
                 particleMass);
         }
         R.particlePositions = positions;
@@ -247,27 +247,31 @@
 
         R.timeStep = 0.01;
 
-        R.particleSize = .1;
-        R.bound = 0.5;
+        R.particleSize = .05;
+        R.bound = 1.1;
         R.gridBound = R.bound * 1.1;
+        R.time = 0.0;
 
-        R.k = 600.0;
+        R.k = 500.0;
         R.kT = 5.0;
+        R.kBody = 500.0;
         R.kBound = 2000.0;
-        R.n = 5.0;
+        R.n = 10.0;
         R.nBound = 40.0;
-        R.u = 0.4;
+        R.u = 0.2;
     }
     var initFunnelRigidBodyData = function() {
         R.rigidBodiesEnabled = true;
+        R.rigidBodiesStatic = true;
         R.bodyParticleMass = 0.3;
-        var exp = 2;
+        var exp = 0;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
         R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
         R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
-        var particlesPerBody = 9;
+        var particlesPerBody = 0;
+        //var particlesPerBody = 9;
         if (particlesPerBody * R.numBodies > R.numParticles) {
             throw new Error("More body particles than available particles!");
         }
@@ -279,10 +283,10 @@
         // Body positions
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
-            positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
-                0.8 + i/4.0,
-                Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
-                particlesPerBody * i);
+            positions.push(0.0,
+                0.4,
+                0.0,
+                0.0);
         }
         R.bodyPositions = positions;
 
@@ -315,30 +319,42 @@
         var relativePositions = Array(R.numParticles * 4).fill(-1.0);
         if (R.rigidBodiesEnabled) {
             var index = 0;
-            for (var i = 0; i < R.numBodies; i++) {
-                for (var x = 0; x < 2; x++) {
-                    for (var y = 0; y < 2; y++) {
-                        for (var z = 0; z < 2; z++) {
-                            relativePositions[index] = x * R.particleSize - R.particleSize / 2.0;
-                            relativePositions[index + 1] = y * R.particleSize - R.particleSize / 2.0;
-                            relativePositions[index + 2] = z * R.particleSize - R.particleSize / 2.0;
-                            relativePositions[index + 3] = i;
-                            R.particlePositions[index + 3] = R.bodyParticleMass;
-                            index += 4;
-                        }
-                    }
+            var createCircle = function(y, rad, offset) {
+                var numParticles = Math.floor(2.0 * Math.PI * rad / R.particleSize);
+                var angle = 0.0174533 * 360.0 / numParticles;
+                var angleOffset = offset ? angle * 0.5 : 0.0;
+                //var angleOffset = 0.0;
+                for (var i = 0; i < numParticles; i++) {
+                    relativePositions[index] = Math.sin(i * angle + angleOffset) * rad;
+                    relativePositions[index + 1] = y;
+                    relativePositions[index + 2] = Math.cos(i * angle + angleOffset) * rad;
+                    relativePositions[index + 3] = 0;
+                    R.particlePositions[index + 3] = R.bodyParticleMass;
+                    index += 4;
                 }
-                relativePositions[index] = 0;
-                relativePositions[index + 1] = 0;
-                relativePositions[index + 2] = 0;
-                relativePositions[index + 3] = i;
-                R.particlePositions[index + 3] = R.bodyParticleMass;
-                linearMomenta[4*i + 3] = particlesPerBody;
-
-                index += 4;
+                particlesPerBody += numParticles;
+            }
+            //createCircle(0.0, 0.2);
+            for (var y = 0; y < 16; y++) {
+                if (y < 4) {
+                    createCircle(y * R.particleSize, 1.5 * R.particleSize, false);
+                    createCircle(y * R.particleSize - 0.5 * R.particleSize, 2.0 * R.particleSize, true);
+                    createCircle(y * R.particleSize, 2.5 * R.particleSize, false);
+                }
+                else {
+                    createCircle(y * R.particleSize,
+                        1.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
+                    createCircle(y * R.particleSize + 0.5 * R.particleSize,
+                        1.8 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
+                    createCircle(y * R.particleSize,
+                        2.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
+                }
             }
         }
+        console.log(relativePositions);
+
         R.relativePositions = relativePositions;
+        linearMomenta[3] = particlesPerBody;
         R.linearMomenta = linearMomenta;
         R.angularMomenta = angularMomenta;
 
@@ -409,6 +425,7 @@
 
         R.k = 600.0;
         R.kT = 5.0;
+        R.kBody = R.k * 1.1;
         R.kBound = 2000.0;
         R.n = 5.0;
         R.nBound = 40.0;
@@ -517,11 +534,11 @@
             max: 2
         };
 
-        var particleMass = 1.0;
+        var particleMass = 0.8;
         for (var i = 0; i < R.numParticles; i++) {
-            positions.push( Math.random() * 0.2 - 0.1,
-                Math.random() * 1.0 + 0.0,
-                Math.random() * 0.2 - 0.1,
+            positions.push( Math.random() * 2.0 - 1.0,
+                Math.random() * 1.0 + 0.5,
+                Math.random() * 2.0 - 1.0,
                 particleMass);
         }
         R.particlePositions = positions;
@@ -529,8 +546,8 @@
         // Initialize particle velocities
         var velocities = [];
         var velBounds = {
-            min: -0.2,
-            max: 0.2
+            min: 0.0,
+            max: 0.0
         };
         //velocities.push(1.0, 0.0, 0.0, 1.0);
         for (var i = 0; i < R.numParticles; i++) {
@@ -566,8 +583,9 @@
 
         R.k = 1200.0;
         R.kT = 5.0;
+        R.kBody = 1600.0;
         R.kBound = 2000.0;
-        R.n = 3.0;
+        R.n = 4.0;
         R.nBound = 40.0;
         R.u = 0.4;
     }
@@ -594,7 +612,7 @@
         // Body positions
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
-            positions.push( 0.0, 0.25, 0.0, particlesPerBody * i);
+            positions.push( 0.0, 0.2, 0.0, particlesPerBody * i);
         }
         R.bodyPositions = positions;
 
@@ -820,7 +838,7 @@
 			function(prog) {
 				// Create an object to hold info about this shader program
 				var p = { prog: prog };
-                debugger;
+                //debugger;
 				// Retrieve the uniform and attribute locations
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
                 p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
@@ -834,6 +852,7 @@
                 //Physics coefficients
                 p.u_k  = gl.getUniformLocation(prog, 'u_k');
                 p.u_kT  = gl.getUniformLocation(prog, 'u_kT');
+                p.u_kBody  = gl.getUniformLocation(prog, 'u_kBody');
                 p.u_kBound  = gl.getUniformLocation(prog, 'u_kBound');
                 p.u_n  = gl.getUniformLocation(prog, 'u_n');
                 p.u_nBound  = gl.getUniformLocation(prog, 'u_nBound');
@@ -1037,6 +1056,7 @@
                 p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
                 p.u_bodySide = gl.getUniformLocation(prog, 'u_bodySide');
                 p.u_time = gl.getUniformLocation(prog, 'u_time');
+                p.u_scene = gl.getUniformLocation(prog, 'u_scene');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
