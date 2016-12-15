@@ -113,8 +113,8 @@ var width, height;
             0.1,            // Near plane
             100             // Far plane
         );
-        camera.position.set(-3, 3, -3);
-        //camera.position.set(0, 2.4, 3);
+        //camera.position.set(-3, 3, -3);
+        camera.position.set(0, 2.4, 3.5);
         //camera.position.set(0, 4, 1.5);
         R.nearPlaneHeight = height / (2*Math.tan(0.5* R.fovy*Math.PI/180.0));
         //console.log(nearPlaneHeight);
@@ -122,8 +122,8 @@ var width, height;
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.enableZoom = true;
-        controls.target.set(0.5, 0.5, 0.5);
-        //controls.target.set(0.0, -0.1, 0.0);
+        //controls.target.set(0.5, 0.5, 0.5);
+        controls.target.set(0.0, -0.1, 0.0);
         //controls.target.set(0.0, 0.4, 0.0);
         controls.rotateSpeed = 0.3;
         controls.zoomSpeed = 1.0;
