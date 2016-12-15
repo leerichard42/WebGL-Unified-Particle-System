@@ -74,7 +74,7 @@ Defining rigid bodies by hand is quite tedious. We implemented a method of gener
 
 (Image credit: [NVIDIA Gpu Gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html))
 
-Next, we run a fragment shader which calculates a unique voxel position for its `uv` coordinate. This is similar to the 3D grid since it is a 2D representation of a 3D cube. The fragment shader then calculates if the 3D position of the voxel is in between the two depth peel images--if it is, it writes a `1` to a texture. This texture looks something like this for the duck:
+Next, we run a fragment shader which calculates a unique voxel position for its `uv` coordinate. This is similar to the 3D grid since it is a 2D representation of a 3D cube. The fragment shader then calculates if the 3D position of the voxel is in between the two depth peel images--if it is, it writes a `1` to a texture. Unlike the scattering operation of the uniform grid, we can run this as a gather operation on every voxel grid coordinate. This texture looks something like this for the duck:
 
 ![](img/duck_voxel.PNG)
 
