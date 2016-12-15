@@ -18,7 +18,7 @@
         generateGrid('A');
         generateGrid('B');
 
-        generateParticlesFromMesh("duck", 64)
+        generateParticlesFromMesh("duck", 2)
     };
 
     var initParticleData = function() {
@@ -246,27 +246,28 @@
             return;
         }
 
-        R["meshParticlesFBO" + id] = gl.createFramebuffer();
-        
+        var localR = {};
+        localR["meshParticlesFBO" + id] = gl.createFramebuffer();
+        R["meshParticlesFBOVoxel" + id] = gl.createFramebuffer();
         var gridTexTileDimensions = Math.ceil(Math.sqrt(gridSideLength));
         var gridTexSideLength = gridTexTileDimensions * gridSideLength;
 
-        var localR = {};
-        localR["meshParticlesTex" + id + "0"] = createAndBindTexture(R["meshParticlesFBO" + id],
+        localR["meshParticlesTex" + id + "0"] = createAndBindTexture(localR["meshParticlesFBO" + id],
             gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gridTexSideLength, gridTexSideLength, null);
-        localR["meshParticlesTex" + id + "1"] = createAndBindTexture(R["meshParticlesFBO" + id],
+        localR["meshParticlesTex" + id + "1"] = createAndBindTexture(localR["meshParticlesFBO" + id],
             gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, gridTexSideLength, gridTexSideLength, null);
-        R["meshParticlesTex" + id] = createAndBindTexture(R["meshParticlesFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, gridTexSideLength, gridTexSideLength, null);
+        R["meshParticlesTex" + id] = createAndBindTexture(R["meshParticlesFBOVoxel" + id],
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gridTexSideLength, gridTexSideLength, null);
 
-        abortIfFramebufferIncomplete(R["meshParticlesFBO" + id]);
+        abortIfFramebufferIncomplete(localR["meshParticlesFBO" + id]);
+        abortIfFramebufferIncomplete(R["meshParticlesFBOVoxel" + id]);
         
-        createAndBindDepthStencilBuffer(R["meshParticlesFBO" + id], gridTexSideLength, gridTexSideLength);
+        createAndBindDepthStencilBuffer(localR["meshParticlesFBO" + id], gridTexSideLength, gridTexSideLength);
 
         // Draw model 2x on two textures. Once with near, once with far
         gl.useProgram(R.progParticleFromMeshDepth.prog);
         gl.viewport(0, 0, gridTexSideLength, gridTexSideLength);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, R["meshParticlesFBO" + id]);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, localR["meshParticlesFBO" + id]);
         
         gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
             gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
@@ -277,14 +278,14 @@
         var height = 2;
         var camera = new THREE.OrthographicCamera( width / -2, width / 2, 
            height / 2, height / -2, 1, 20);
-        camera.position.set(0, 1, -10);
+        camera.position.set(0, 1, 10);
         camera.up = new THREE.Vector3(0, 1, 0);
         camera.lookAt(new THREE.Vector3(0, 1, 0));
 
         camera.updateMatrixWorld();
         camera.matrixWorldInverse.getInverse(camera.matrixWorld);
         orthoMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-
+        debugger;
         gl.uniformMatrix4fv(R.progParticleFromMeshDepth.u_cameraMat, false, orthoMat.elements);
         readyModelForDraw(R.progParticleFromMeshDepth, R.model);
         
@@ -305,22 +306,20 @@
         // Feed those textures into vertex shader, output 3D texture of voxels
         gl.useProgram(R.progParticleFromMeshVoxel.prog);
         gl.viewport(0, 0, gridTexSideLength, gridTexSideLength);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, R["meshParticlesFBOVoxel" + id]);
+
         gl.clear(gl.DEPTH_BUFFER_BIT);
 
         var orthoMatInv = new THREE.Matrix4();
         orthoMatInv.getInverse(orthoMat);
 
-        gl.uniform1i(R.progParticleFromMeshVoxel.u_tex0, 0);
-        gl.uniform1i(R.progParticleFromMeshVoxel.u_tex1, 1);
         gl.uniformMatrix4fv(R.progParticleFromMeshVoxel.u_cameraMat, false, orthoMat.elements);
         gl.uniformMatrix4fv(R.progParticleFromMeshVoxel.u_cameraMatInv, false, orthoMatInv.elements);
         gl.uniform1f(R.progParticleFromMeshVoxel.u_gridSideLength, gridSideLength);
         gl.uniform1f(R.progParticleFromMeshVoxel.u_gridTexSideLength, gridTexSideLength);
         gl.uniform1f(R.progParticleFromMeshVoxel.u_gridWorldBounds, width);
-        gl.uniform2fv(R.progParticleFromMeshVoxel.u_gridWorldLowerLeft, [camera.position.x - width,
-                                                                        camera.position.y - height]);
-        //gl.uniform1f(R.progParticleFromMeshVoxel.u_gridTexTileDimensions, gridTexTileDimensions);
-        
+        gl.uniform2fv(R.progParticleFromMeshVoxel.u_gridWorldLowerLeft, [camera.position.x - width * .5,
+                                                                        camera.position.y - height * .5]);
         // Bind textures
         gl.activeTexture(gl['TEXTURE0']);
         gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "0"]);

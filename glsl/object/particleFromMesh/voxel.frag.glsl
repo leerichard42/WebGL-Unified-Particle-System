@@ -26,15 +26,33 @@ vec3 voxelIndexFromUV(vec2 uv) {
                     floor(idx / pow(u_gridSideLength, 2.)));
 
     pos = pos / u_gridSideLength;
-    pos = pos * 2. * u_gridWorldBounds;
-    pos = pos + vec3(u_gridWorldLowerLeft, -u_gridWorldBounds);
-
+    pos = pos * u_gridWorldBounds;
+    pos = pos + vec3(u_gridWorldLowerLeft, -u_gridWorldBounds * .5);
+    // Add small vector in order to align to pixel centers in depth textures
+    // I think... D:
+    pos = pos + (u_gridWorldBounds * .5 / u_gridSideLength);
     return pos;
 }
 
 void main() {
     vec3 voxelIdx = voxelIndexFromUV(v_uv);
     vec2 voxelUV = (u_cameraMat * vec4(voxelIdx, 1)).xy;
-    //vec3 tex0Depth = 
-    gl_FragData[2] = vec4(voxelUV, 1);
+    voxelUV = .5 * (voxelUV + 1.);
+
+    //gl_FragColor = vec4(voxelUV, 0., 1.);
+    vec3 voxelPos = texture2D(u_tex0, voxelUV).xyz;
+    //gl_FragColor = vec4(voxelPos, 1.);
+    if (abs(voxelIdx.x - voxelPos.x) < .6) {
+        gl_FragColor = vec4(0, 1, 0, 1);
+    } else {
+        gl_FragColor = vec4(1, 0, 0, 1);
+    }
+    // float tex0Depth = texture2D(u_tex0, voxelUV).z;
+    // float tex1Depth = texture2D(u_tex1, voxelUV).z;
+
+    // if (voxelIdx.z > tex0Depth && voxelIdx.z < tex1Depth) {
+    //     gl_FragColor = vec4(1, 1, 0, 1);
+    // } else {
+    //     gl_FragColor = vec4(0, 0, 1, 1);
+    // }
 }
