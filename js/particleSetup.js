@@ -239,41 +239,44 @@
 
     var generateParticlesFromMesh = function(id, gridSideLength) {
         // HACKY!
-        if (!R.progParticleFromMeshDepth || !R.progDebug) {
+        if (!R.progParticleFromMeshDepth || !R.progDebug || !R.progParticleFromMeshVoxel) {
             window.requestAnimationFrame(function() {
                 generateParticlesFromMesh(id, gridSideLength);
             });
             return;
         }
-        debugger;
+
         R["meshParticlesFBO" + id] = gl.createFramebuffer();
-        var gridTexSideLength = Math.ceil(Math.sqrt(Math.pow(gridSideLength, 3)));
+        
+        var gridTexTileDimensions = Math.ceil(Math.sqrt(gridSideLength));
+        var gridTexSideLength = gridTexTileDimensions * gridSideLength;
 
         var localR = {};
         localR["meshParticlesTex" + id + "0"] = createAndBindTexture(R["meshParticlesFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gridSideLength, gridSideLength, null);
+            gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL, gridTexSideLength, gridTexSideLength, null);
         localR["meshParticlesTex" + id + "1"] = createAndBindTexture(R["meshParticlesFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, gridSideLength, gridSideLength, null);
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL, gridTexSideLength, gridTexSideLength, null);
         R["meshParticlesTex" + id] = createAndBindTexture(R["meshParticlesFBO" + id],
-            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, gridSideLength, gridSideLength, null);
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL, gridTexSideLength, gridTexSideLength, null);
 
-        createAndBindDepthStencilBuffer(R["meshParticlesFBO" + id], gridSideLength, gridSideLength);
+        abortIfFramebufferIncomplete(R["meshParticlesFBO" + id]);
         
-        abortIfFramebufferIncomplete(R["bodyFBO" + id]);
-        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
-                gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
-                gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL]);
+        createAndBindDepthStencilBuffer(R["meshParticlesFBO" + id], gridTexSideLength, gridTexSideLength);
 
         // Draw model 2x on two textures. Once with near, once with far
         gl.useProgram(R.progParticleFromMeshDepth.prog);
-        gl.viewport(0, 0, gridSideLength, gridSideLength);
+        gl.viewport(0, 0, gridTexSideLength, gridTexSideLength);
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["meshParticlesFBO" + id]);
+        
+        gl_draw_buffers.drawBuffersWEBGL([gl_draw_buffers.COLOR_ATTACHMENT0_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT1_WEBGL,
+            gl_draw_buffers.COLOR_ATTACHMENT2_WEBGL]);
 
         var orthoMat = new THREE.Matrix4();
         var width = 2;
         var height = 2;
         var camera = new THREE.OrthographicCamera( width / -2, width / 2, 
-           height / 2, height / -2, 1, 100);
+           height / 2, height / -2, 1, 20);
         camera.position.set(0, 1, -10);
         camera.up = new THREE.Vector3(0, 1, 0);
         camera.lookAt(new THREE.Vector3(0, 1, 0));
@@ -283,23 +286,71 @@
         orthoMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
 
         gl.uniformMatrix4fv(R.progParticleFromMeshDepth.u_cameraMat, false, orthoMat.elements);
-        gl.uniform1i(R.progParticleFromMeshDepth.u_texID, 0);
-        
         readyModelForDraw(R.progParticleFromMeshDepth, R.model);
+        
+        // Pass 1
+        gl.uniform1i(R.progParticleFromMeshDepth.u_texID, 0);
+        gl.depthFunc(gl.LESS);
         gl.drawElements(R.model.gltf.mode, R.model.gltf.indices.length, R.model.gltf.indicesComponentType, 0);
         
-        var prog = R.progDebug;
-        gl.useProgram(prog.prog);
-        gl.viewport(0, 0, 128 * 5, 128 * 2);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        // Pass 2
+        gl.uniform1i(R.progParticleFromMeshDepth.u_texID, 1);
+        gl.disable(gl.CULL_FACE);
+        gl.depthFunc(gl.GREATER);
+        gl.drawElements(R.model.gltf.mode, R.model.gltf.indices.length, R.model.gltf.indicesComponentType, 0);
+        
+        gl.depthFunc(gl.LESS);
+        gl.enable(gl.CULL_FACE);
 
+        // Feed those textures into vertex shader, output 3D texture of voxels
+        gl.useProgram(R.progParticleFromMeshVoxel.prog);
+        gl.viewport(0, 0, gridTexSideLength, gridTexSideLength);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        var orthoMatInv = new THREE.Matrix4();
+        orthoMatInv.getInverse(orthoMat);
+
+        gl.uniform1i(R.progParticleFromMeshVoxel.u_tex0, 0);
+        gl.uniform1i(R.progParticleFromMeshVoxel.u_tex1, 1);
+        gl.uniformMatrix4fv(R.progParticleFromMeshVoxel.u_cameraMat, false, orthoMat.elements);
+        gl.uniformMatrix4fv(R.progParticleFromMeshVoxel.u_cameraMatInv, false, orthoMatInv.elements);
+        gl.uniform1f(R.progParticleFromMeshVoxel.u_gridSideLength, gridSideLength);
+        gl.uniform1f(R.progParticleFromMeshVoxel.u_gridTexSideLength, gridTexSideLength);
+        gl.uniform1f(R.progParticleFromMeshVoxel.u_gridWorldBounds, width);
+        gl.uniform2fv(R.progParticleFromMeshVoxel.u_gridWorldLowerLeft, [camera.position.x - width,
+                                                                        camera.position.y - height]);
+        //gl.uniform1f(R.progParticleFromMeshVoxel.u_gridTexTileDimensions, gridTexTileDimensions);
+        
+        // Bind textures
         gl.activeTexture(gl['TEXTURE0']);
         gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "0"]);
-        gl.uniform1i(prog.u_depth0, 0);
+        gl.uniform1i(R.progParticleFromMeshVoxel.u_tex0, 0);
+
+        gl.activeTexture(gl['TEXTURE1']);
+        gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "1"]);
+        gl.uniform1i(R.progParticleFromMeshVoxel.u_tex1, 1);
+
+        renderFullScreenQuad(R.progParticleFromMeshVoxel);
+
+        // Temporary debug
+        gl.useProgram(R.progDebug.prog);
+        gl.viewport(0, 0, 128 * 6, 128 * 2);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // Bind textures
+        gl.activeTexture(gl['TEXTURE0']);
+        gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "0"]);
+        gl.uniform1i(R.progDebug.u_depth0, 0);
+
+        gl.activeTexture(gl['TEXTURE1']);
+        gl.bindTexture(gl.TEXTURE_2D, localR["meshParticlesTex" + id + "1"]);
+        gl.uniform1i(R.progDebug.u_depth1, 1);
+        
+        gl.activeTexture(gl['TEXTURE2']);
+        gl.bindTexture(gl.TEXTURE_2D, R["meshParticlesTex" + id]);
+        gl.uniform1i(R.progDebug.u_voxel, 2);
 
         renderFullScreenQuad(R.progDebug);
-        // gl.uniform1i(progParticleFromMesh.u_texID, 1);
-        // // Feed those textures (and array of uniform grid) into vertex shader
 
         // Output 1s or 0s into 3D texture
     }
@@ -514,6 +565,8 @@
                 p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
                 p.u_depth0 = gl.getUniformLocation(prog, 'u_depth0');
+                p.u_depth1 = gl.getUniformLocation(prog, 'u_depth1');
+                p.u_voxel = gl.getUniformLocation(prog, 'u_voxel');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later
@@ -582,8 +635,9 @@
             }
         );
 
-         // Load particle generation shader 
-        loadShaderProgram(gl, 'glsl/object/particleFromMesh.vert.glsl', 'glsl/object/particleFromMesh.frag.glsl',
+         // Load particle generation depth shader 
+        loadShaderProgram(gl, 'glsl/object/particleFromMesh/depth.vert.glsl', 
+                                'glsl/object/particleFromMesh/depth.frag.glsl',
             function(prog) {
                 // Create an object to hold info about this shader program
                 var p = { prog: prog };
@@ -594,6 +648,29 @@
                 p.a_position = gl.getUniformLocation(prog, 'a_position');                
                 // Save the object into this variable for access later
                 R.progParticleFromMeshDepth = p;
+            }
+        );
+
+        // Load particle generation shader 
+        loadShaderProgram(gl, 'glsl/particle/quad.vert.glsl', 
+                                'glsl/object/particleFromMesh/voxel.frag.glsl',
+            function(prog) {
+                // Create an object to hold info about this shader program
+                var p = { prog: prog };
+
+                // Retrieve the uniform and attribute locations
+                p.u_tex0 = gl.getUniformLocation(prog, 'u_tex0');
+                p.u_tex1 = gl.getUniformLocation(prog, 'u_tex1');
+                p.u_cameraMat = gl.getUniformLocation(prog, 'u_cameraMat');
+                p.u_cameraMatInv = gl.getUniformLocation(prog, 'u_cameraMatInv');
+                p.u_gridSideLength = gl.getUniformLocation(prog, 'u_gridSideLength');
+                p.u_gridTexSideLength = gl.getUniformLocation(prog, 'u_gridTexSideLength');
+                p.u_gridWorldBounds = gl.getUniformLocation(prog, 'u_gridWorldBounds');
+                p.u_gridWorldLowerLeft = gl.getUniformLocation(prog, 'u_gridWorldLowerLeft');
+                //p.u_gridTexTileDimensions = gl.getUniformLocation(prog, 'u_gridTexTileDimensions');
+                p.a_position = gl.getUniformLocation(prog, 'a_position');                
+                // Save the object into this variable for access later
+                R.progParticleFromMeshVoxel = p;
             }
         );
     };

@@ -14,11 +14,13 @@ uniform sampler2D u_linearMomentumTex;
 uniform sampler2D u_angularMomentumTex;
 uniform sampler2D u_relPosTex;
 uniform sampler2D u_depth0;
+uniform sampler2D u_depth1;
+uniform sampler2D u_voxel;
 
 varying vec2 v_uv;
 
 void main() {
-    float num_tex = 5.0;
+    float num_tex = 6.0;
 
     if (v_uv.y < 0.5) {
         if (v_uv.x < 1./num_tex) {
@@ -33,9 +35,12 @@ void main() {
         } else if (v_uv.x > 3./num_tex && v_uv.x < 4./num_tex) {
             vec4 grid = texture2D(u_gridTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0));
             gl_FragColor = vec4(grid.rgb * .005, 1);
-        } else if (v_uv.x > 4./num_tex) {
+        } else if (v_uv.x > 4./num_tex && v_uv.x < 5./num_tex) {
             vec4 depth = texture2D(u_depth0, vec2(v_uv.x * num_tex - 4.0, v_uv.y * 2.0));
-            gl_FragColor = vec4(depth.rgb, 1);
+            gl_FragColor = vec4(depth.zzz * -10., 1);
+        } else if (v_uv.x > 5./num_tex) {
+            vec4 voxel = texture2D(u_voxel, vec2(v_uv.x * num_tex - 5.0, v_uv.y * 2.0));
+            gl_FragColor = voxel;
         }
     }
     else {
@@ -50,7 +55,7 @@ void main() {
             vec4 vel = texture2D(u_linearMomentumTex, vec2(v_uv.x * num_tex - 2.0, v_uv.y * 2.0 - 1.0));
             gl_FragColor = vec4(abs(vel).xyz, 1.0);
 //            gl_FragColor = vec4(vec3(vel.w), 1.0);
-        } else if (v_uv.x > 3./num_tex) {
+        } else if (v_uv.x > 3./num_tex && v_uv.x < 4./num_tex) {
 //            vec4 momentum = texture2D(u_angularMomentumTex, vec2(v_uv.x * num_tex - 1.0, v_uv.y * 2.0));
 //            gl_FragColor = vec4(abs(momentum).xyz, 1.0);
 
@@ -60,6 +65,9 @@ void main() {
 
 //            vec4 pos = texture2D(u_posTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
 //            gl_FragColor = pos;
+        } else if (v_uv.x > 4./num_tex) {
+            vec4 depth = texture2D(u_depth1, vec2(v_uv.x * num_tex - 4.0, v_uv.y * 2.0 - 1.0));
+            gl_FragColor = vec4(depth.zzz * -10., 1);
         }
     }
 

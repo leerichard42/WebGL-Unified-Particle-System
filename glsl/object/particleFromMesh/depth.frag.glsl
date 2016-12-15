@@ -9,6 +9,8 @@ varying vec3 pos;
 
 void main() {
     if (int(texID) == 0) {
-        gl_FragColor = vec4(pos.z, 0, 0, 1);
+        gl_FragData[0] = vec4(pos, 1); 
+    } else if (int(texID) == 1) {
+        gl_FragData[1] = vec4(pos, 1);
     }
 }
