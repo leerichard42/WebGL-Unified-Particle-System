@@ -75,7 +75,7 @@ void main() {
         vec3 currRelPos = rotate_pos(relPosTexel.xyz, bodyRot);
         vec3 pos = bodyPos.xyz + currRelPos;
         if (u_scene == 3) {
-            pos += vec3(0.0, 0.0, 0.7 * sin(u_time/2.0));
+            pos += vec3(0.7 * sin(u_time/2.0), 0.0, 0.0);
         }
         vec3 vel = linearVel + cross(angularMomentum, currRelPos);
         gl_FragData[0] = vec4(pos, mass);
