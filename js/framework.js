@@ -26,6 +26,13 @@ var width, height;
         controls.update();
         stats.end();
         stats.begin();
+        if (R.toReset) {
+            //console.log("resetting");
+            R.setupBuffers();
+            R.time = 0;
+            //R.scene = (R.scene == 1 ? 3 : 1);
+            R.toReset = false;
+        }
         render();
         if (!aborted) {
             requestAnimationFrame(update);
@@ -107,6 +114,8 @@ var width, height;
             100             // Far plane
         );
         camera.position.set(-3, 3, -3);
+        //camera.position.set(0, 2.4, 3);
+        //camera.position.set(0, 4, 1.5);
         R.nearPlaneHeight = height / (2*Math.tan(0.5* R.fovy*Math.PI/180.0));
         //console.log(nearPlaneHeight);
 
@@ -114,6 +123,8 @@ var width, height;
         controls.enableDamping = true;
         controls.enableZoom = true;
         controls.target.set(0.5, 0.5, 0.5);
+        //controls.target.set(0.0, -0.1, 0.0);
+        //controls.target.set(0.0, 0.4, 0.0);
         controls.rotateSpeed = 0.3;
         controls.zoomSpeed = 1.0;
         controls.panSpeed = 2.0;

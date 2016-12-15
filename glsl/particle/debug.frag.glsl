@@ -36,34 +36,34 @@ void main() {
             gl_FragColor = vec4(grid.rgb * .005, 1);
         }
     }
-    else {
-        if (v_uv.x < 1./num_tex) {
-            vec4 bodyPos = texture2D(u_bodyPosTex, vec2(v_uv.x * num_tex, v_uv.y * 2.0 - 1.0));
-            gl_FragColor = vec4(bodyPos.xyz / 4.0, 1.0);
-//            gl_FragColor = vec4(vec3(bodyPos.w) / 36.0, 1.0);
-        } else if (v_uv.x > 1./num_tex && v_uv.x < 2./num_tex) {
-            vec4 bodyRot = texture2D(u_bodyRotTex, vec2(v_uv.x * num_tex - 1.0, v_uv.y * 2.0 - 1.0));
-            gl_FragColor = bodyRot;
-        } else if (v_uv.x > 2./num_tex && v_uv.x < 3./num_tex) {
+//    else {
+//        if (v_uv.x < 1./num_tex) {
+//            vec4 bodyPos = texture2D(u_bodyPosTex, vec2(v_uv.x * num_tex, v_uv.y * 2.0 - 1.0));
+//            gl_FragColor = vec4(abs(bodyPos.xyz), 1.0);
+////            gl_FragColor = vec4(vec3(bodyPos.w) / 36.0, 1.0);
+//        } else if (v_uv.x > 1./num_tex && v_uv.x < 2./num_tex) {
+//            vec4 bodyRot = texture2D(u_bodyRotTex, vec2(v_uv.x * num_tex - 1.0, v_uv.y * 2.0 - 1.0));
+//            gl_FragColor = bodyRot;
+//        } else if (v_uv.x > 2./num_tex && v_uv.x < 3./num_tex) {
 //            vec4 vel = texture2D(u_linearMomentumTex, vec2(v_uv.x * num_tex - 2.0, v_uv.y * 2.0 - 1.0));
 //            gl_FragColor = vec4(abs(vel).xyz, 1.0);
-
-            vec4 torque = texture2D(u_bodyTorqueTex, vec2(v_uv.x * num_tex - 2.0, v_uv.y * 2.0 - 1.0));
-            gl_FragColor = vec4(abs(torque).xyz, 1.0);
-//        } else if (v_uv.x > 3./num_tex) {
-//            vec4 momentum = texture2D(u_angularMomentumTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
-//            gl_FragColor = vec4(abs(momentum).xyz, 1.0);
-
-            vec4 relPos = texture2D(u_relPosTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
+//
+////            vec4 torque = texture2D(u_bodyTorqueTex, vec2(v_uv.x * num_tex - 2.0, v_uv.y * 2.0 - 1.0));
+////            gl_FragColor = vec4(abs(torque).xyz, 1.0);
+////        } else if (v_uv.x > 3./num_tex) {
+////            vec4 momentum = texture2D(u_angularMomentumTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
+////            gl_FragColor = vec4(abs(momentum).xyz, 1.0);
+//
+//            vec4 relPos = texture2D(u_relPosTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
 //            gl_FragColor = vec4(abs(relPos.xyz), 1.0);
-            gl_FragColor = vec4(vec3((relPos.w+1.0)/4.0), 1.0);
-
-//            vec4 pos = texture2D(u_posTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
-//            gl_FragColor = pos;
-
-//            vec4 force = texture2D(u_bodyForceTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
-//            gl_FragColor = vec4(abs(force.xyz), 1.0);
-        }
-    }
+////            gl_FragColor = vec4(vec3((relPos.w+1.0)/4.0), 1.0);
+//
+////            vec4 pos = texture2D(u_posTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
+////            gl_FragColor = pos;
+//
+////            vec4 force = texture2D(u_bodyForceTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0 - 1.0));
+////            gl_FragColor = vec4(abs(force.xyz), 1.0);
+//        }
+//    }
 
 }

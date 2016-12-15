@@ -3,6 +3,17 @@
 
     window.R = {};
 
+    R.setupBuffers = function() {
+        setupBuffers('A');
+        setupBuffers('RK2_A');
+        setupBuffers('RK2_B');
+        setupBuffers('RK2_C');
+        setupBuffers('B');
+
+        generateGrid('A');
+        generateGrid('B');
+    }
+
     R.particleSetup = function() {
         loadAllShaderPrograms();
         R.scene = 1; // 0 = test, 1 = funnel, 2 = pile, 3 = push
@@ -23,14 +34,8 @@
             initPushRigidBodyData();
         }
         initRender();
-        setupBuffers('A');
-        setupBuffers('RK2_A');
-        setupBuffers('RK2_B');
-        setupBuffers('RK2_C');
-        setupBuffers('B');
-
-        generateGrid('A');
-        generateGrid('B');
+        R.setupBuffers();
+        R.toReset = false;
     };
 
     // Test Init
@@ -622,7 +627,7 @@
         // Body positions
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
-            positions.push( 0.0, 0.2, 0.0, particlesPerBody * i);
+            positions.push( 0.2, 0.2, -0.2, particlesPerBody * i);
         }
         R.bodyPositions = positions;
 
@@ -656,9 +661,9 @@
         if (R.rigidBodiesEnabled) {
             var index = 0;
             for (var i = 0; i < R.numBodies; i++) {
-                for (var x = 0; x < 8; x++) {
-                    for (var z = 0; z < 3; z++) {
-                        for (var y = 0; y < (z == 1 ? 4 : 3); y++) {
+                for (var z = 0; z < 8; z++) {
+                    for (var x = 0; x < 3; x++) {
+                        for (var y = 0; y < (x == 1 ? 4 : 3); y++) {
                             relativePositions[index] = - R.particleSize / 2.0 - R.particleSize * 3.0 + x * R.particleSize;
                             relativePositions[index + 1] =  - R.particleSize / 2.0 - R.particleSize * 2.0 + y * R.particleSize;
                             relativePositions[index + 2] = - R.particleSize + z * R.particleSize ;
@@ -668,9 +673,9 @@
                         }
                     }
                 }
-                for (var x = 0; x < 7; x++) {
+                for (var z = 0; z < 7; z++) {
                     for (var y = 0; y < 3; y++) {
-                        for (var z = 0; z < 2; z++) {
+                        for (var x = 0; x < 2; x++) {
                             relativePositions[index] = -R.particleSize * 3.0 + x * R.particleSize;
                             relativePositions[index + 1] = -R.particleSize * 2.0 + y * R.particleSize;
                             relativePositions[index + 2] = - R.particleSize / 2.0 + z * R.particleSize;
