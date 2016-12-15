@@ -5,7 +5,7 @@
 
     R.particleSetup = function() {
         loadAllShaderPrograms();
-        R.scene = 3 // 0 = test, 1 = funnel, 2 = pile, 3 = push
+        R.scene = 1; // 0 = test, 1 = funnel, 2 = pile, 3 = push
         if (R.scene == 0) {
             initParticleData();
             initRigidBodyData();
@@ -191,7 +191,7 @@
 
     // Funnel Init
     var initFunnelParticleData = function() {
-        var exp = 10;
+        var exp = 12;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
@@ -205,12 +205,11 @@
             max: 2
         };
 
-        var particleMass = 0.5;
+        var particleMass = 1.5;
         for (var i = 0; i < R.numParticles; i++) {
-            positions.push(- 0.2,
-                1.5 + (R.numParticles - i) * 0.05,
-                - 0.05,
-                particleMass);
+            //positions.push(0, 0, 0, particleMass);
+            //positions.push(- 0.2, 1.5 + (R.numParticles - i) * 0.05, -0.05, particleMass);
+            positions.push(-10, -10, -10, particleMass);
         }
         R.particlePositions = positions;
 
@@ -224,7 +223,7 @@
         for (var i = 0; i < R.numParticles; i++) {
             velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
                 Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
-                Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 1.0);
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 0.0);
         }
         R.particleVelocities = velocities;
 
@@ -254,11 +253,12 @@
 
         R.k = 500.0;
         R.kT = 5.0;
-        R.kBody = 500.0;
-        R.kBound = 2000.0;
-        R.n = 10.0;
-        R.nBound = 40.0;
-        R.u = 0.2;
+        R.kBody = 2000.0;
+        R.kBound = 10000.0;
+        R.n = 5.0;
+        R.nBody = 20.0;
+        R.nBound = 200.0;
+        R.u = 1.0;
     }
     var initFunnelRigidBodyData = function() {
         R.rigidBodiesEnabled = true;
@@ -335,23 +335,32 @@
                 particlesPerBody += numParticles;
             }
             //createCircle(0.0, 0.2);
-            for (var y = 0; y < 16; y++) {
-                if (y < 4) {
-                    createCircle(y * R.particleSize, 1.5 * R.particleSize, false);
-                    createCircle(y * R.particleSize - 0.5 * R.particleSize, 2.0 * R.particleSize, true);
-                    createCircle(y * R.particleSize, 2.5 * R.particleSize, false);
-                }
-                else {
+            for (var y = 0; y < 20; y++) {
+                //if (y <= 4) {
+                //    createCircle(y * R.particleSize, 1.5 * R.particleSize, false);
+                //    createCircle(y * R.particleSize - 0.5 * R.particleSize, 2.0 * R.particleSize, false);
+                //    createCircle(y * R.particleSize, 2.5 * R.particleSize, false);
+                //    createCircle(y * R.particleSize, 1.5 * R.particleSize, true);
+                //    createCircle(y * R.particleSize - 0.5 * R.particleSize, 2.0 * R.particleSize, true);
+                //    createCircle(y * R.particleSize, 2.5 * R.particleSize, true);
+                //}
+                if (y >= 6) {
                     createCircle(y * R.particleSize,
-                        1.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
+                        1.2 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
                     createCircle(y * R.particleSize + 0.5 * R.particleSize,
-                        1.8 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
+                        1.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
                     createCircle(y * R.particleSize,
-                        2.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
+                        2.0 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
+                    createCircle(y * R.particleSize,
+                        1.2 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
+                    createCircle(y * R.particleSize + 0.5 * R.particleSize,
+                        1.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
+                    createCircle(y * R.particleSize,
+                        2.0 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
                 }
             }
         }
-        console.log(relativePositions);
+        //console.log(relativePositions);
 
         R.relativePositions = relativePositions;
         linearMomenta[3] = particlesPerBody;
@@ -586,6 +595,7 @@
         R.kBody = 1600.0;
         R.kBound = 2000.0;
         R.n = 4.0;
+        R.nBody = R.n;
         R.nBound = 40.0;
         R.u = 0.4;
     }
@@ -855,6 +865,7 @@
                 p.u_kBody  = gl.getUniformLocation(prog, 'u_kBody');
                 p.u_kBound  = gl.getUniformLocation(prog, 'u_kBound');
                 p.u_n  = gl.getUniformLocation(prog, 'u_n');
+                p.u_nBody  = gl.getUniformLocation(prog, 'u_nBody');
                 p.u_nBound  = gl.getUniformLocation(prog, 'u_nBound');
                 p.u_u  = gl.getUniformLocation(prog, 'u_u');
 
@@ -1054,6 +1065,7 @@
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
                 p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
                 p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
+                p.u_particleSideLength = gl.getUniformLocation(prog, 'u_particleSide');
                 p.u_bodySide = gl.getUniformLocation(prog, 'u_bodySide');
                 p.u_time = gl.getUniformLocation(prog, 'u_time');
                 p.u_scene = gl.getUniformLocation(prog, 'u_scene');

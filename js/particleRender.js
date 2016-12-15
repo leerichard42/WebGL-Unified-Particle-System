@@ -93,11 +93,13 @@
         //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
         gl.uniform1i(prog.u_bodySide, R.bodySideLength);
         gl.uniform1f(prog.u_time, R.time);
         gl.uniform1i(prog.u_scene, R.scene);
-        if (R.scene == 3) {
+        if (R.scene == 3 || R.scene == 1) {
             R.time += R.timeStep;
+            //console.log("TIME: " + R.time);
         }
 
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_bodyPosTex,
@@ -190,6 +192,7 @@
         gl.uniform1f(prog.u_kBody, R.kBody);
         gl.uniform1f(prog.u_kBound, R.kBound);
         gl.uniform1f(prog.u_n, R.n);
+        gl.uniform1f(prog.u_nBody, R.nBody);
         gl.uniform1f(prog.u_nBound, R.nBound);
         gl.uniform1f(prog.u_u, R.u);
 

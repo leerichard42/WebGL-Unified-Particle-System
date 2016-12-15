@@ -23,7 +23,9 @@ void main() {
     vec4 forceTexel_2 = texture2D(u_forceTex2, v_uv);
     vec4 relPosTexel = texture2D(u_relPosTex, v_uv);
     int index = int(texture2D(u_relPosTex, v_uv).w);
-    if (index == -1) {
+    int isActive = int(velTexel_1.w);
+//    int isActive = 1;
+    if (index == -1 && isActive == 1) {
         vec3 pos = posTexel.xyz;
         vec3 vel_1 = velTexel_1.xyz;
         vec3 force_1 = forceTexel_1.xyz;
@@ -36,7 +38,7 @@ void main() {
 
     	//Update position and velocity
         gl_FragData[0] = vec4(newPos, mass);
-        gl_FragData[1] = vec4(newVel, 1.0);
+        gl_FragData[1] = vec4(newVel, velTexel_1.w);
         gl_FragData[2] = texture2D(u_forceTex1, v_uv);
         gl_FragData[3] = relPosTexel;
     }
