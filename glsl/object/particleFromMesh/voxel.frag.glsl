@@ -38,21 +38,25 @@ void main() {
     vec3 voxelIdx = voxelIndexFromUV(v_uv);
     vec2 voxelUV = (u_cameraMat * vec4(voxelIdx, 1)).xy;
     voxelUV = .5 * (voxelUV + 1.);
+    // Align to pixel centers
+    voxelUV = voxelUV * u_gridTexSideLength;
+    voxelUV = floor(voxelUV) - .5;
+    voxelUV = voxelUV / u_gridTexSideLength;
 
-    //gl_FragColor = vec4(voxelUV, 0., 1.);
+    //gl_FragColor = vec4(voxelUV, 0, 1.);
     vec3 voxelPos = texture2D(u_tex0, voxelUV).xyz;
-    //gl_FragColor = vec4(voxelPos, 1.);
-    if (abs(voxelIdx.x - voxelPos.x) < .6) {
-        gl_FragColor = vec4(0, 1, 0, 1);
-    } else {
-        gl_FragColor = vec4(1, 0, 0, 1);
-    }
-    // float tex0Depth = texture2D(u_tex0, voxelUV).z;
-    // float tex1Depth = texture2D(u_tex1, voxelUV).z;
-
-    // if (voxelIdx.z > tex0Depth && voxelIdx.z < tex1Depth) {
-    //     gl_FragColor = vec4(1, 1, 0, 1);
+    //gl_FragColor = vec4(voxelPos.zzz * -10., 1.);
+    // if (abs(voxelIdx.x - voxelPos.x) < .1) {
+    //     gl_FragColor = vec4(0, 1, 0, 1);
     // } else {
-    //     gl_FragColor = vec4(0, 0, 1, 1);
+    //     gl_FragColor = vec4(1, 0, 0, 1);
     // }
+    float tex0Depth = texture2D(u_tex0, voxelUV).z;
+    float tex1Depth = texture2D(u_tex1, voxelUV).z;
+
+    if (voxelIdx.z < tex0Depth && voxelIdx.z > tex1Depth) {
+        gl_FragColor = vec4(1, 1, 0, 1);
+    } else {
+        gl_FragColor = vec4(0, 0, 1, 1);
+    }
 }

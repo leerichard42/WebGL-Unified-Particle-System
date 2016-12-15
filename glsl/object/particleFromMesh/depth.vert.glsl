@@ -15,5 +15,5 @@ void main() {
     vec4 position = u_cameraMat * a_position;
     gl_Position = position;
     texID = float(u_texID);
-    pos = position.xyz;
+    pos = a_position.xyz;
 }

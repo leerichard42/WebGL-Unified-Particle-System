@@ -18,7 +18,7 @@
         generateGrid('A');
         generateGrid('B');
 
-        generateParticlesFromMesh("duck", 2)
+        generateParticlesFromMesh("duck", 32)
     };
 
     var initParticleData = function() {
