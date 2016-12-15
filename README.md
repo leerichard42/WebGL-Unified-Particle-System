@@ -24,7 +24,18 @@ The technique detailed in the paper can also be generalized to particles with va
 * Fluid simulation
 * Unified particle simulation
 
+### Uniform Grid
+![](http://http.developer.nvidia.com/GPUGems3/elementLinks/29fig08.jpg)
+(Image credit: [NVIDIA Gpu Gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html))
 
+![](img/3D_grid.gif)
+
+### Particle Generation from Mesh
+![](img/depth_ducks.PNG)
+
+![](img/duck_final.PNG)
+
+![](img/duck_voxel.PNG)
 ### References
 http://learningwebgl.com/blog/?p=1786
 http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html

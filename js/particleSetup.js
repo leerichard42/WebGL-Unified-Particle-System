@@ -767,12 +767,12 @@
 
         R.timeStep = 0.01;
 
-        R.particleSize = .05;
-        R.bound = .8;
+        R.particleSize = .08;
+        R.bound = 1.8;
         R.gridBound = R.bound * 1.1;
         R.time = 0.0;
 
-        R.k = 3500.0;
+        R.k = 1500.0;
         R.kT = 5.0;
         R.kBody = 1600.0;
         R.kBound = 2000.0;
@@ -847,7 +847,7 @@
                 for (var k = 0; k < pixels.length; k++) {
                     if (pixels[k] != 0) {
                         var pixelIdx = k / 4;
-                        var scale = .3;
+                        var scale = 1.;
                         var x = pixelIdx % R.gridSideLength;
                         x /= R.gridSideLength;
                         x *= scale;

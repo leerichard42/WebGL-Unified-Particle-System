@@ -22,7 +22,7 @@ uniform sampler2D u_bodyTorqueTex;
 varying vec2 v_uv;
 
 void main() {
-    float num_tex = 6.0;
+    float num_tex = 4.0;
 
     if (v_uv.y < 0.5) {
         if (v_uv.x < 1./num_tex) {
