@@ -28,11 +28,18 @@ A 3D texture represents the voxels in the uniform grid, and each pixel stores th
 
 ![](img/3D_grid.gif)
 
-The process for updating th
-##### Pitfalls
-![](http://http.developer.nvidia.com/GPUGems3/elementLinks/29fig08.jpg)
-(Image credit: [NVIDIA Gpu Gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html))
+The uniform grid is divided into cells of width the same as the diameter of the particles. The reasoning behind this is that it minimized the number of neighboring cells that must be searched in the physics calculations while minimizing the number of particles in a cell. Ideally, each grid cell could hold only one particle, but in practice this is not the case--particles can "squeeze" into a cell depennding on the conditions. In order to handle this edge case, we use a process for updating the grid which fits up to four particle indices in each grid cell. This scattering operation requires a vertex shader to be run in 4 passes, each pass filling in a different component of the grid texture (R, G, B, A) with a particle index. Each pass exploits the fact that the particles are render in ascending index order, with increasing depths. By manipulating the stencil and depth buffers, we successfully populate the 3D grid texture with up to four particles per cell.
 
+##### Pitfalls
+The uniform grid performs very well under the right conditions (see the Performance Analysis section). However, the uniform grid breaks down in other conditions. If we were to implement particles of different sizes, for example, we'd have to make the uniform grid's cell size equal to the diameter of the smallest particle. In cases where the particle sizes vary greatly, this will mean each particle has to search a large number of neighboring cells, decreasing the performance benefit of the uniform grid.
+
+Another case we ran into where the uniform grid began failing was when too many heavy particles were stacked on top of each other. In this scenario, the pressure of the particles managed to squeeze more than 4 particles into some cells. This made the sea of particles "pop" as particles confused themselves with other particles because of the id lookup in the grid cell. 
+
+Finally, since textures have a maximum limit of 4096x4096 on most computers with WebGL, the grid size is limited to around 255 cells per side (256*256*256 = 4096*4096). This means that as the size of the particles decrease (which increases the number of cells per side on the grid), the uniform grid becomes inviable at a certain point.
+
+![](http://http.developer.nvidia.com/GPUGems3/elementLinks/29fig08.jpg)
+
+(Image credit: [NVIDIA Gpu Gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html))
 
 ### Rigid Bodies
 //rigid body indexing image
