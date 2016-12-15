@@ -45,10 +45,9 @@ The uniform grid is divided into cells of width the same as the diameter of the 
 ##### Pitfalls
 The uniform grid performs very well under the right conditions (see the Performance Analysis section). However, the uniform grid breaks down in other conditions. If we were to implement particles of different sizes, for example, we'd have to make the uniform grid's cell size equal to the diameter of the smallest particle. In cases where the particle sizes vary greatly, this will mean each particle has to search a large number of neighboring cells, decreasing the performance benefit of the uniform grid.
 
-Another case we ran into where the uniform grid began failing was when too many heavy particles were stacked on top of each other. In this scenario, the pressure of the particles managed to squeeze more than 4 particles into some cells. This made the sea of particles "pop" as particles confused themselves with other particles because of the id lookup in the grid cell. 
+Another case we ran into where the uniform grid began failing was when too many heavy particles were stacked on top of each other. In this scenario, the pressure of the particles managed to squeeze more than 4 particles into some cells. This made the sea of particles "pop" as particles confused themselves with other particles because of the id lookup in the grid cell.
 
 Finally, since textures have a maximum limit of 4096x4096 on most computers with WebGL, the grid size is limited to around 255 cells per side (256*256*256 = 4096*4096). This means that as the size of the particles decrease (which increases the number of cells per side on the grid), the uniform grid becomes inviable at a certain point.
-
 
 
 ### Rigid Bodies
@@ -87,9 +86,14 @@ Finally, the values in this texture are converted to relative positions and fed 
  * Firefox 49.0.2, Windows 10, i5-3570K @ 3.40GHz 16GB, Radeon HD 7900
  * Google Chrome 54.0.2840.71, Windows 10, FX-8320 @ 3.50GHz 8GB, GTX 1060 3GB
 
-### naive vs grid, with increasing # of particles
-### performance among scenes
+### Naive vs. Grid Collision Detection
 
+![](img/collision_detection.png)<br>
+The runtime of the simulation was largely a function of how many interparticle collisions had to be calculated on each timestep. As a result, the uniform grid provided a significant advantage in the number of particles that could be simulated at once. While the naive method had a running time of O(n^2), as it checked each particle with every other particle, the grid method was O(n), since it only needed to check the 27 cells surrounding a particle's grid index.
+
+### Performance among scenes
+![](img/scenes.png)<br>
+The different scenes had roughly the same performance. The scene with just particles took slightly longer, possibly because it consisted entirely of particles and had more interparticle collisions to account for, while the funnel scene was slightly faster due to the fact that a large portion of the particles in the scene comprised the static funnel.
 
 ### References
 http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html //gpu gems
