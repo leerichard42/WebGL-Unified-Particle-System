@@ -54,15 +54,16 @@ Defining rigid bodies by hand is quite tedious. We implemented a method of gener
 ![](img/depth_ducks.PNG)
 
 ![](http://http.developer.nvidia.com/GPUGems3/elementLinks/29fig04.jpg)
+
 (Image credit: [NVIDIA Gpu Gems](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html))
 
 Next, we run a fragment shader which calculates a unique voxel position for its `uv` coordinate. This is similar to the 3D grid since it is a 2D representation of a 3D cube. The fragment shader then calculates if the 3D position of the voxel is in between the two depth peel images--if it is, it writes a `1` to a texture. This texture looks something like this for the duck:
 
-![](img/duck_final.PNG)
+![](img/duck_voxel.PNG)
 
 Finally, the values in this texture are converted to relative positions and fed into the rigid body shaders. This process allows us to define different resolutions of meshes--a high resolution screenshot of the duck is shown below.
 
-![](img/duck_voxel.PNG)
+![](img/duck_final.PNG)
 
 ## Performance Analysis
 
