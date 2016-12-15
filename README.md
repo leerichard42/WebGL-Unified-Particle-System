@@ -83,16 +83,16 @@ Finally, the values in this texture are converted to relative positions and fed 
 
 ## Performance Analysis
 
-#### Particle Mesh Generation
-The overhead of generating the particle mesh for the duck comes only at the beginning of loading the program. Since its values are stored in a texture, it could even be loaded from a server in order to save the computer some extra computation. The actual time it takes to render the two depth peel images is very small, hovering around 3-4ms as the grid size increased. What takes the most time in our implementation is actually a javascript function which calls `gl.readPixels` on the texture in order to buffer them into another texture. This operation could be done by a fragment shader, and, had time permitted, would have been done so. However, since the performance hit for even a large 128x128x128 grid is under 1 second, the extra performance savings might not warrant the inclusion of another shader. The data can be seen below:
-
-![](voxel_perf.jpg)
-
-Notice how the blue area in the stacked bars is barely visible; the depth images render very quickly.
-
 - Tested on:
  * Firefox 49.0.2, Windows 10, i5-3570K @ 3.40GHz 16GB, Radeon HD 7900
  * Google Chrome 54.0.2840.71, Windows 10, FX-8320 @ 3.50GHz 8GB, GTX 1060 3GB
+
+#### Particle Mesh Generation
+The overhead of generating the particle mesh for the duck comes only at the beginning of loading the program. Since its values are stored in a texture, it could even be loaded from a server in order to save the computer some extra computation. The actual time it takes to render the two depth peel images is very small, hovering around 3-4ms as the grid size increased. What takes the most time in our implementation is actually a javascript function which calls `gl.readPixels` on the texture in order to buffer them into another texture. This operation could be done by a fragment shader, and, had time permitted, would have been done so. However, since the performance hit for even a large 128x128x128 grid is under 1 second, the extra performance savings might not warrant the inclusion of another shader. The data can be seen below:
+
+![](voxel_perf.png)
+
+Notice how the blue area in the stacked bars is barely visible; the depth images render very quickly.
 
 ### Naive vs. Grid Collision Detection
 
@@ -104,10 +104,10 @@ The runtime of the simulation was largely a function of how many interparticle c
 The different scenes had roughly the same performance. The scene with just particles took slightly longer, possibly because it consisted entirely of particles and had more interparticle collisions to account for, while the funnel scene was slightly faster due to the fact that a large portion of the particles in the scene comprised the static funnel.
 
 ### References
-http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html //gpu gems
-http://learningwebgl.com/blog/?p=1786 //rendering to texture
-http://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf //point rendering
 
+* [GPU Gems 3 Chapter 29](http://http.developer.nvidia.com/GPUGems3/gpugems3_ch29.html)
+* [Rendering to Texture](http://learningwebgl.com/blog/?p=1786)
+* [Screen-Space Sphere Rendering](http://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf)
 * [Three.js](https://github.com/mrdoob/three.js) by [@mrdoob](https://github.com/mrdoob) and contributors
 * [stats.js](https://github.com/mrdoob/stats.js) by [@mrdoob](https://github.com/mrdoob) and contributors
 * [webgl-debug](https://github.com/KhronosGroup/WebGLDeveloperTools) by Khronos Group Inc.
