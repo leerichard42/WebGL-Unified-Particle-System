@@ -5,8 +5,23 @@
 
     R.particleSetup = function() {
         loadAllShaderPrograms();
-        initParticleData();
-        initRigidBodyData();
+        R.scene = 3 // 0 = test, 1 = funnel, 2 = pile, 3 = push
+        if (R.scene == 0) {
+            initParticleData();
+            initRigidBodyData();
+        }
+        else if (R.scene == 1) {
+            initFunnelParticleData();
+            initFunnelRigidBodyData();
+        }
+        else if (R.scene == 2) {
+            initPileParticleData();
+            initPileRigidBodyData();
+        }
+        else if (R.scene == 3) {
+            initPushParticleData();
+            initPushRigidBodyData();
+        }
         initRender();
         setupBuffers('A');
         setupBuffers('RK2_A');
@@ -18,6 +33,7 @@
         generateGrid('B');
     };
 
+    // Test Init
     var initParticleData = function() {
         var exp = 10;
         if (exp % 2 != 0) {
@@ -78,8 +94,14 @@
         R.particleSize = .1;
         R.bound = 0.5;
         R.gridBound = R.bound * 1.1;
-    }
 
+        R.k = 600.0;
+        R.kT = 5.0;
+        R.kBound = 2000.0;
+        R.n = 5.0;
+        R.nBound = 40.0;
+        R.u = 0.4;
+    }
     var initRigidBodyData = function() {
         R.rigidBodiesEnabled = true;
         R.bodyParticleMass = 0.3;
@@ -157,6 +179,485 @@
                 R.particlePositions[index + 3] = R.bodyParticleMass;
                 linearMomenta[4*i + 3] = particlesPerBody;
 
+                index += 4;
+            }
+        }
+        R.relativePositions = relativePositions;
+        R.linearMomenta = linearMomenta;
+        R.angularMomenta = angularMomenta;
+
+        computeInertiaTensors();
+    }
+
+    // Funnel Init
+    var initFunnelParticleData = function() {
+        var exp = 10;
+        if (exp % 2 != 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numParticles = Math.pow(2, exp);
+        R.particleSideLength = Math.sqrt(R.numParticles);
+
+        // Initialize particle positions
+        var positions = [];
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
+
+        var particleMass = 1.0;
+        for (var i = 0; i < R.numParticles; i++) {
+            positions.push( Math.random() * 0.2 - 0.1,
+                Math.random() * 1.0 + 0.0,
+                Math.random() * 0.2 - 0.1,
+                particleMass);
+        }
+        R.particlePositions = positions;
+
+        // Initialize particle velocities
+        var velocities = [];
+        var velBounds = {
+            min: -0.2,
+            max: 0.2
+        };
+        //velocities.push(1.0, 0.0, 0.0, 1.0);
+        for (var i = 0; i < R.numParticles; i++) {
+            velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 1.0);
+        }
+        R.particleVelocities = velocities;
+
+        // Initialize particle forces
+        var forces = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            forces.push(0.0, 0.0, 0.0, 1.0);
+        }
+        R.forces = forces;
+
+        // Initialize particle indices
+        var indices = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            indices[i] = i;
+        }
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+        R.indices = indexBuffer;
+
+        R.timeStep = 0.01;
+
+        R.particleSize = .1;
+        R.bound = 0.5;
+        R.gridBound = R.bound * 1.1;
+
+        R.k = 600.0;
+        R.kT = 5.0;
+        R.kBound = 2000.0;
+        R.n = 5.0;
+        R.nBound = 40.0;
+        R.u = 0.4;
+    }
+    var initFunnelRigidBodyData = function() {
+        R.rigidBodiesEnabled = true;
+        R.bodyParticleMass = 0.3;
+        var exp = 2;
+        if (exp % 2 != 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
+        R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
+        var particlesPerBody = 9;
+        if (particlesPerBody * R.numBodies > R.numParticles) {
+            throw new Error("More body particles than available particles!");
+        }
+
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
+        // Body positions
+        var positions = [];
+        for (var i = 0; i < R.numBodies; i++) {
+            positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                0.8 + i/4.0,
+                Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                particlesPerBody * i);
+        }
+        R.bodyPositions = positions;
+
+        // Body orientations
+        var orientations = [];
+        for (i = 0; i < R.numBodies; i++) {
+            orientations.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyOrientations = orientations;
+
+        // Body forces
+        var forces = [];
+        for (i = 0; i < R.numBodies; i++) {
+            forces.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyForces = forces;
+
+        // Body torques
+        var torques = [];
+        for (i = 0; i < R.numBodies; i++) {
+            torques.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyTorques = torques;
+
+        // Linear and angular velocities
+        var linearMomenta = Array(R.numBodies * 4).fill(0.0);
+        var angularMomenta = Array(R.numBodies * 4).fill(0.0);
+
+        // Relative particle positions (cube for now) and rigid body index
+        var relativePositions = Array(R.numParticles * 4).fill(-1.0);
+        if (R.rigidBodiesEnabled) {
+            var index = 0;
+            for (var i = 0; i < R.numBodies; i++) {
+                for (var x = 0; x < 2; x++) {
+                    for (var y = 0; y < 2; y++) {
+                        for (var z = 0; z < 2; z++) {
+                            relativePositions[index] = x * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 1] = y * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 2] = z * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 3] = i;
+                            R.particlePositions[index + 3] = R.bodyParticleMass;
+                            index += 4;
+                        }
+                    }
+                }
+                relativePositions[index] = 0;
+                relativePositions[index + 1] = 0;
+                relativePositions[index + 2] = 0;
+                relativePositions[index + 3] = i;
+                R.particlePositions[index + 3] = R.bodyParticleMass;
+                linearMomenta[4*i + 3] = particlesPerBody;
+
+                index += 4;
+            }
+        }
+        R.relativePositions = relativePositions;
+        R.linearMomenta = linearMomenta;
+        R.angularMomenta = angularMomenta;
+
+        computeInertiaTensors();
+    }
+
+    // Pile Init
+    var initPileParticleData = function() {
+        var exp = 10;
+        if (exp % 2 != 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numParticles = Math.pow(2, exp);
+        R.particleSideLength = Math.sqrt(R.numParticles);
+
+        // Initialize particle positions
+        var positions = [];
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
+
+        var particleMass = 1.0;
+        for (var i = 0; i < R.numParticles; i++) {
+            positions.push( Math.random() * 0.2 - 0.1,
+                Math.random() * 1.0 + 0.0,
+                Math.random() * 0.2 - 0.1,
+                particleMass);
+        }
+        R.particlePositions = positions;
+
+        // Initialize particle velocities
+        var velocities = [];
+        var velBounds = {
+            min: -0.2,
+            max: 0.2
+        };
+        //velocities.push(1.0, 0.0, 0.0, 1.0);
+        for (var i = 0; i < R.numParticles; i++) {
+            velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 1.0);
+        }
+        R.particleVelocities = velocities;
+
+        // Initialize particle forces
+        var forces = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            forces.push(0.0, 0.0, 0.0, 1.0);
+        }
+        R.forces = forces;
+
+        // Initialize particle indices
+        var indices = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            indices[i] = i;
+        }
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+        R.indices = indexBuffer;
+
+        R.timeStep = 0.01;
+
+        R.particleSize = .1;
+        R.bound = 0.5;
+        R.gridBound = R.bound * 1.1;
+
+        R.k = 600.0;
+        R.kT = 5.0;
+        R.kBound = 2000.0;
+        R.n = 5.0;
+        R.nBound = 40.0;
+        R.u = 0.4;
+    }
+    var initPileRigidBodyData = function() {
+        R.rigidBodiesEnabled = true;
+        R.bodyParticleMass = 0.3;
+        var exp = 2;
+        if (exp % 2 != 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
+        R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
+        var particlesPerBody = 9;
+        if (particlesPerBody * R.numBodies > R.numParticles) {
+            throw new Error("More body particles than available particles!");
+        }
+
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
+        // Body positions
+        var positions = [];
+        for (var i = 0; i < R.numBodies; i++) {
+            positions.push( Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                0.8 + i/4.0,
+                Math.random() * (gridBounds.max - gridBounds.min) - gridBounds.min / 2.0,
+                particlesPerBody * i);
+        }
+        R.bodyPositions = positions;
+
+        // Body orientations
+        var orientations = [];
+        for (i = 0; i < R.numBodies; i++) {
+            orientations.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyOrientations = orientations;
+
+        // Body forces
+        var forces = [];
+        for (i = 0; i < R.numBodies; i++) {
+            forces.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyForces = forces;
+
+        // Body torques
+        var torques = [];
+        for (i = 0; i < R.numBodies; i++) {
+            torques.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyTorques = torques;
+
+        // Linear and angular velocities
+        var linearMomenta = Array(R.numBodies * 4).fill(0.0);
+        var angularMomenta = Array(R.numBodies * 4).fill(0.0);
+
+        // Relative particle positions (cube for now) and rigid body index
+        var relativePositions = Array(R.numParticles * 4).fill(-1.0);
+        if (R.rigidBodiesEnabled) {
+            var index = 0;
+            for (var i = 0; i < R.numBodies; i++) {
+                for (var x = 0; x < 2; x++) {
+                    for (var y = 0; y < 2; y++) {
+                        for (var z = 0; z < 2; z++) {
+                            relativePositions[index] = x * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 1] = y * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 2] = z * R.particleSize - R.particleSize / 2.0;
+                            relativePositions[index + 3] = i;
+                            R.particlePositions[index + 3] = R.bodyParticleMass;
+                            index += 4;
+                        }
+                    }
+                }
+                relativePositions[index] = 0;
+                relativePositions[index + 1] = 0;
+                relativePositions[index + 2] = 0;
+                relativePositions[index + 3] = i;
+                R.particlePositions[index + 3] = R.bodyParticleMass;
+                linearMomenta[4*i + 3] = particlesPerBody;
+
+                index += 4;
+            }
+        }
+        R.relativePositions = relativePositions;
+        R.linearMomenta = linearMomenta;
+        R.angularMomenta = angularMomenta;
+
+        computeInertiaTensors();
+    }
+
+    // Push Init
+    var initPushParticleData = function() {
+        var exp = 10;
+        if (exp % 2 != 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numParticles = Math.pow(2, exp);
+        R.particleSideLength = Math.sqrt(R.numParticles);
+
+        // Initialize particle positions
+        var positions = [];
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
+
+        var particleMass = 1.0;
+        for (var i = 0; i < R.numParticles; i++) {
+            positions.push( Math.random() * 0.2 - 0.1,
+                Math.random() * 1.0 + 0.0,
+                Math.random() * 0.2 - 0.1,
+                particleMass);
+        }
+        R.particlePositions = positions;
+
+        // Initialize particle velocities
+        var velocities = [];
+        var velBounds = {
+            min: -0.2,
+            max: 0.2
+        };
+        //velocities.push(1.0, 0.0, 0.0, 1.0);
+        for (var i = 0; i < R.numParticles; i++) {
+            velocities.push(Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min,
+                Math.random() * (velBounds.max - velBounds.min) + velBounds.min, 1.0);
+        }
+        R.particleVelocities = velocities;
+
+        // Initialize particle forces
+        var forces = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            forces.push(0.0, 0.0, 0.0, 1.0);
+        }
+        R.forces = forces;
+
+        // Initialize particle indices
+        var indices = [];
+        for (var i = 0; i < R.numParticles; i++) {
+            indices[i] = i;
+        }
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+        R.indices = indexBuffer;
+
+        R.timeStep = 0.01;
+
+        R.particleSize = .1;
+        R.bound = 1.1;
+        R.gridBound = R.bound * 1.1;
+        R.time = 0.0;
+
+        R.k = 1200.0;
+        R.kT = 5.0;
+        R.kBound = 2000.0;
+        R.n = 3.0;
+        R.nBound = 40.0;
+        R.u = 0.4;
+    }
+    var initPushRigidBodyData = function() {
+        R.rigidBodiesEnabled = true;
+        R.rigidBodiesStatic = true;
+        R.bodyParticleMass = 0.3;
+        var exp = 0;
+        if (exp % 2 != 0) {
+            throw new Error("Texture side is not a power of two!");
+        }
+        R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
+        R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
+        //var particlesPerBody = 85;
+        var particlesPerBody = 69;
+        if (particlesPerBody * R.numBodies > R.numParticles) {
+            throw new Error("More body particles than available particles!");
+        }
+
+        var gridBounds = {
+            min: 1,
+            max: 2
+        };
+        // Body positions
+        var positions = [];
+        for (var i = 0; i < R.numBodies; i++) {
+            positions.push( 0.0, 0.25, 0.0, particlesPerBody * i);
+        }
+        R.bodyPositions = positions;
+
+        // Body orientations
+        var orientations = [];
+        for (i = 0; i < R.numBodies; i++) {
+            orientations.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyOrientations = orientations;
+
+        // Body forces
+        var forces = [];
+        for (i = 0; i < R.numBodies; i++) {
+            forces.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyForces = forces;
+
+        // Body torques
+        var torques = [];
+        for (i = 0; i < R.numBodies; i++) {
+            torques.push( 0.0, 0.0, 0.0, 1.0);
+        }
+        R.bodyTorques = torques;
+
+        // Linear and angular velocities
+        var linearMomenta = Array(R.numBodies * 4).fill(0.0);
+        var angularMomenta = Array(R.numBodies * 4).fill(0.0);
+
+        // Relative particle positions (cube for now) and rigid body index
+        var relativePositions = Array(R.numParticles * 4).fill(-1.0);
+        if (R.rigidBodiesEnabled) {
+            var index = 0;
+            for (var i = 0; i < R.numBodies; i++) {
+                for (var x = 0; x < 8; x++) {
+                    for (var z = 0; z < 3; z++) {
+                        for (var y = 0; y < (z == 1 ? 4 : 3); y++) {
+                            relativePositions[index] = - R.particleSize / 2.0 - R.particleSize * 3.0 + x * R.particleSize;
+                            relativePositions[index + 1] =  - R.particleSize / 2.0 - R.particleSize * 2.0 + y * R.particleSize;
+                            relativePositions[index + 2] = - R.particleSize + z * R.particleSize ;
+                            relativePositions[index + 3] = i;
+                            R.particlePositions[index + 3] = R.bodyParticleMass;
+                            index += 4;
+                        }
+                    }
+                }
+                for (var x = 0; x < 7; x++) {
+                    for (var y = 0; y < 3; y++) {
+                        for (var z = 0; z < 2; z++) {
+                            relativePositions[index] = -R.particleSize * 3.0 + x * R.particleSize;
+                            relativePositions[index + 1] = -R.particleSize * 2.0 + y * R.particleSize;
+                            relativePositions[index + 2] = - R.particleSize / 2.0 + z * R.particleSize;
+                            relativePositions[index + 3] = i;
+                            R.particlePositions[index + 3] = R.bodyParticleMass;
+                            index += 4;
+                        }
+                    }
+                }
+                //relativePositions[index] = 0;
+                //relativePositions[index + 1] = 0;
+                //relativePositions[index + 2] = 0;
+                //relativePositions[index + 3] = i;
+                //R.particlePositions[index + 3] = R.bodyParticleMass;
+                linearMomenta[4*i + 3] = particlesPerBody;
                 index += 4;
             }
         }
@@ -329,6 +830,14 @@
                 p.u_dt = gl.getUniformLocation(prog, 'u_dt');
                 p.u_bound = gl.getUniformLocation(prog, 'u_bound');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
+
+                //Physics coefficients
+                p.u_k  = gl.getUniformLocation(prog, 'u_k');
+                p.u_kT  = gl.getUniformLocation(prog, 'u_kT');
+                p.u_kBound  = gl.getUniformLocation(prog, 'u_kBound');
+                p.u_n  = gl.getUniformLocation(prog, 'u_n');
+                p.u_nBound  = gl.getUniformLocation(prog, 'u_nBound');
+                p.u_u  = gl.getUniformLocation(prog, 'u_u');
 
                 // Grid uniforms
                 p.u_gridTex = gl.getUniformLocation(prog, 'u_gridTex');
@@ -527,6 +1036,7 @@
                 p.u_linearMomentumTex = gl.getUniformLocation(prog, 'u_linearMomentumTex');
                 p.u_angularMomentumTex = gl.getUniformLocation(prog, 'u_angularMomentumTex');
                 p.u_bodySide = gl.getUniformLocation(prog, 'u_bodySide');
+                p.u_time = gl.getUniformLocation(prog, 'u_time');
                 p.a_position  = gl.getAttribLocation(prog, 'a_position');
 
                 // Save the object into this variable for access later

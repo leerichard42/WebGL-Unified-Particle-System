@@ -15,6 +15,7 @@ uniform sampler2D u_relPosTex;
 uniform sampler2D u_linearMomentumTex;
 uniform sampler2D u_angularMomentumTex;
 uniform int u_bodySide;
+uniform float u_time;
 
 varying vec2 v_uv;
 
@@ -70,7 +71,7 @@ void main() {
         vec3 angularMomentum = texture2D(u_angularMomentumTex, uv).xyz;
 
         vec3 currRelPos = rotate_pos(relPosTexel.xyz, bodyRot);
-        vec3 pos = bodyPos.xyz + currRelPos;
+        vec3 pos = bodyPos.xyz + vec3(0.0, 0.0, 0.7 * sin(u_time/2.0)) + currRelPos;
         vec3 vel = linearVel + cross(angularMomentum, currRelPos);
         gl_FragData[0] = vec4(pos, mass);
         gl_FragData[1] = vec4(vel, 1.0);

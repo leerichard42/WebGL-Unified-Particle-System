@@ -30,7 +30,7 @@
             calculateForces(state, R.progPhysics, 'A', 'A', 'RK2_B');
             updateEuler(state, 'A', 'RK2_B', 'RK2_A');
 
-            if (R.rigidBodiesEnabled) {
+            if (R.rigidBodiesEnabled && !R.rigidBodiesStatic) {
                 //calculateBodyForces(state, 'A', 'RK2_B', 'RK2_C');
                 //updateBodyEuler(state, 'A', 'RK2_C', 'B');
                 //
@@ -58,9 +58,13 @@
                 updateBodyRK2(state, R.progBodyRK2, 'A', 'A', 'RK2_A', 'RK2_B', 'RK2_B', 'B');
             }
             else {
+                //A has pp1, pv1 - do not write
+                //RK2_B has pf1
+                //RK2_A has pp2, pv2, pf1
                 updateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
-                calculateForces(state, R.progPhysics, 'RK2_A', 'B', 'A');
-                updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
+                calculateForces(state, R.progPhysics, 'RK2_A', 'RK2_A', 'RK2_C');
+                //RK2_C has pf2
+                updateParticlesRK2(state, R.progRK2, 'A', 'A', 'RK2_A', 'RK2_A', 'RK2_C', 'B');
             }
 
         }
@@ -90,6 +94,8 @@
         gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
 
         gl.uniform1i(prog.u_bodySide, R.bodySideLength);
+        gl.uniform1f(prog.u_time, R.time);
+        R.time += R.timeStep;
 
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_bodyPosTex,
             prog.u_bodyRotTex, prog.u_relPosTex,
@@ -175,6 +181,13 @@
         gl.uniform1f(prog.u_diameter, R.particleSize);
         gl.uniform1f(prog.u_dt, R.timeStep);
         gl.uniform1f(prog.u_bound, R.bound);
+
+        gl.uniform1f(prog.u_k, R.k);
+        gl.uniform1f(prog.u_kT, R.kT);
+        gl.uniform1f(prog.u_kBound, R.kBound);
+        gl.uniform1f(prog.u_n, R.n);
+        gl.uniform1f(prog.u_nBound, R.nBound);
+        gl.uniform1f(prog.u_u, R.u);
 
         // Fill in grid uniforms
         gl.uniform1f(prog.u_gridSideLength, R.gridBound * 2.); // WARNING: R.bound + constant

@@ -14,6 +14,18 @@ uniform float u_diameter;
 uniform float u_dt;
 uniform float u_bound;
 
+// Spring coefficients
+uniform float u_k;
+uniform float u_kT;
+uniform float u_kBound;
+
+// Damping coefficient
+uniform float u_n;
+uniform float u_nBound;
+
+// Friction coefficient
+uniform float u_u;
+
 // Grid uniforms
 uniform float u_gridSideLength;
 uniform int u_gridNumCellsPerSide;
@@ -48,15 +60,15 @@ void main() {
     float mass = posTexel.w;
 
     // Spring coefficient
-    float k = 600.0;
-    float k_t = 5.0;
-    float bounds_k = 2000.0;
+    float k = u_k;
+    float k_t = u_kT;
+    float bounds_k = u_kBound;
 
     // Damping coefficient
-    float n = 5.0;
-    float bounds_n = 40.0;
+    float n = u_n;
+    float bounds_n = u_nBound;
     // Friction coefficient
-    float u = 0.4;
+    float u = u_u;
 
     vec3 spring_total = vec3(0.0);
     vec3 damping_total = vec3(0.0);
@@ -108,9 +120,9 @@ void main() {
 
                 vec4 p_idx = texture2D(u_gridTex, neighborGridUV);
                 for (int c = 0; c < 4; c++) {
-//                    if (p_idx[c] == 0.) {
-//                        continue;
-//                    }
+                    if (p_idx[c] == 0.) {
+                        continue;
+                    }
                     vec2 uv;
                     // Kind of hacky - setting particle with index 0.0 to 0.5
                     if (abs(p_idx[c] - .5) < EPSILON) {
@@ -128,13 +140,16 @@ void main() {
 
                     vec3 rel_pos = p_pos - pos;
                     if (length(rel_pos) < u_diameter) {
+                        if (rb_idx > -1) {
+                            k *= 1.1;
+                        }
                         spring_total += -k * (u_diameter - length(rel_pos)) * normalize(rel_pos);
 
                         vec3 rel_vel = p_vel - vel;
                         damping_total += n * rel_vel;
 
-                        vec3 rel_vel_tangent = rel_vel - dot(rel_vel, normalize(rel_pos)) * normalize(rel_pos);
-                        shear_total += k_t * rel_vel_tangent;
+//                        vec3 rel_vel_tangent = rel_vel - dot(rel_vel, normalize(rel_pos)) * normalize(rel_pos);
+//                        shear_total += k_t * rel_vel_tangent;
                     }
                 }
             }
