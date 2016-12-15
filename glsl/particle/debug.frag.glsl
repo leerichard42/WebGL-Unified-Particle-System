@@ -13,13 +13,16 @@ uniform sampler2D u_bodyRotTex;
 uniform sampler2D u_linearMomentumTex;
 uniform sampler2D u_angularMomentumTex;
 uniform sampler2D u_relPosTex;
+// uniform sampler2D u_depth0;
+// uniform sampler2D u_depth1;
+// uniform sampler2D u_voxel;
 uniform sampler2D u_bodyForceTex;
 uniform sampler2D u_bodyTorqueTex;
 
 varying vec2 v_uv;
 
 void main() {
-    float num_tex = 4.0;
+    float num_tex = 6.0;
 
     if (v_uv.y < 0.5) {
         if (v_uv.x < 1./num_tex) {
@@ -31,9 +34,15 @@ void main() {
         } else if (v_uv.x > 2./num_tex && v_uv.x < 3./num_tex) {
             vec4 force = texture2D(u_forceTex, vec2(v_uv.x * num_tex - 2.0, v_uv.y * 2.0));
             gl_FragColor = abs(force);
-        } else if (v_uv.x > 3./num_tex) {
+        } else if (v_uv.x > 3./num_tex && v_uv.x < 4./num_tex) {
             vec4 grid = texture2D(u_gridTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0));
             gl_FragColor = vec4(grid.rgb * .005, 1);
+        } else if (v_uv.x > 4./num_tex && v_uv.x < 5./num_tex) {
+        //     vec4 depth = texture2D(u_depth0, vec2(v_uv.x * num_tex - 4.0, v_uv.y * 2.0));
+        //     gl_FragColor = vec4(depth.xyz, 1);
+        // } else if (v_uv.x > 5./num_tex) {
+            // vec4 voxel = texture2D(u_voxel, vec2(v_uv.x * num_tex - 5.0, v_uv.y * 2.0));
+            // gl_FragColor = voxel;
         }
     }
 //    else {
