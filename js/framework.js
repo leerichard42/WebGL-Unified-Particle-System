@@ -160,7 +160,7 @@ var width, height;
             var colorTextureName = 'texture_color'; // for sponza
             if (!glTF.json.textures[colorTextureName]) {
                 colorTextureName = (Object.keys(glTF.json.textures))[0];
-                console.log(colorTextureName);
+                //console.log(colorTextureName);
             }
             var normalTextureName = 'texture_normal';
 

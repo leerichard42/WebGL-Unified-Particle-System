@@ -11,7 +11,7 @@ var cfg;
     var init = function() {
         cfg = new Cfg();
         var gui = new dat.GUI();
-        gui.add(cfg, 'pingPong');
+        //gui.add(cfg, 'pingPong');
         gui.add(cfg, 'showTexture');
         var obj = {
             reset:function(){
