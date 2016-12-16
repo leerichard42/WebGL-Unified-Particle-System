@@ -18,7 +18,7 @@
     R.particleSetup = function() {
         //loadAllShaderPrograms();
         //generateParticlesFromMesh("duck", 16);
-        R.scene = 4; // 0 = test, 1 = funnel, 2 = pile, 3 = push, 4 = duck
+        R.scene = 3; // 0 = test, 1 = funnel, 2 = pile, 3 = push, 4 = duck
         if (R.scene == 0) {
             initParticleData();
             initRigidBodyData();

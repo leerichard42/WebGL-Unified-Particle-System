@@ -18,7 +18,7 @@ var cfg;
                 R.toReset = true;;
             }
         };
-        gui.add(obj,'reset');
+        //gui.add(obj,'reset');
     };
 
     window.handle_load.push(init);
