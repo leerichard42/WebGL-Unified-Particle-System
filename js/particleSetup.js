@@ -12,13 +12,10 @@
 
         generateGrid('A');
         generateGrid('B');
-        requestAnimationFrame(R.update);
     }
 
     R.particleSetup = function() {
-        //loadAllShaderPrograms();
-        //generateParticlesFromMesh("duck", 16);
-        R.scene = 3; // 0 = test, 1 = funnel, 2 = pile, 3 = push, 4 = duck
+        R.scene = 1; // 0 = test, 1 = funnel, 2 = pile, 3 = push, 4 = duck
         if (R.scene == 0) {
             initParticleData();
             initRigidBodyData();
@@ -58,10 +55,6 @@
 
         // Initialize particle positions
         var positions = [];
-        var gridBounds = {
-            min: 1,
-            max: 2
-        };
 
         var particleMass = 1.0;
         for (var i = 0; i < R.numParticles; i++) {
@@ -117,7 +110,7 @@
         R.u = 0.4;
     }
     var initRigidBodyData = function() {
-        R.rigidBodiesEnabled = true;
+        R.rigidBodiesEnabled = false;
         R.bodyParticleMass = 0.3;
         var exp = 2;
         if (exp % 2 != 0) {
@@ -199,8 +192,6 @@
         R.relativePositions = relativePositions;
         R.linearMomenta = linearMomenta;
         R.angularMomenta = angularMomenta;
-
-        computeInertiaTensors();
     }
 
     // Funnel Init
@@ -214,10 +205,6 @@
 
         // Initialize particle positions
         var positions = [];
-        var gridBounds = {
-            min: 1,
-            max: 2
-        };
 
         var particleMass = 1.5;
         for (var i = 0; i < R.numParticles; i++) {
@@ -285,15 +272,10 @@
         R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
         R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
         var particlesPerBody = 0;
-        //var particlesPerBody = 9;
         if (particlesPerBody * R.numBodies > R.numParticles) {
             throw new Error("More body particles than available particles!");
         }
 
-        var gridBounds = {
-            min: 1,
-            max: 2
-        };
         // Body positions
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
@@ -338,7 +320,6 @@
                 var angle = 0.0174533 * 360.0 / numParticles;
                 var angleOffset = offset ? angle * 0.5 : 0.0;
                 //var angleOffset = 0.0;
-                debugger;
                 for (var i = 0; i < numParticles; i++) {
                     relativePositions[index] = Math.sin(i * angle + angleOffset) * rad;
                     relativePositions[index + 1] = y;
@@ -349,40 +330,24 @@
                 }
                 particlesPerBody += numParticles;
             }
-            //createCircle(0.0, 0.2);
             for (var y = 0; y < 20; y++) {
-                //if (y <= 4) {
-                //    createCircle(y * R.particleSize, 1.5 * R.particleSize, false);
-                //    createCircle(y * R.particleSize - 0.5 * R.particleSize, 2.0 * R.particleSize, false);
-                //    createCircle(y * R.particleSize, 2.5 * R.particleSize, false);
-                //    createCircle(y * R.particleSize, 1.5 * R.particleSize, true);
-                //    createCircle(y * R.particleSize - 0.5 * R.particleSize, 2.0 * R.particleSize, true);
-                //    createCircle(y * R.particleSize, 2.5 * R.particleSize, true);
-                //}
                 if (y >= 6) {
                     createCircle(y * R.particleSize,
                         1.2 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
                     createCircle(y * R.particleSize + 0.5 * R.particleSize,
                         1.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
-                    //createCircle(y * R.particleSize,
-                    //    2.0 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
                     createCircle(y * R.particleSize,
                         1.2 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
                     createCircle(y * R.particleSize + 0.5 * R.particleSize,
                         1.5 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, false);
-                    //createCircle(y * R.particleSize,
-                    //    2.0 * R.particleSize + ((y-4)/12) * 4 * R.particleSize, true);
                 }
             }
         }
-        //console.log(relativePositions);
 
         R.relativePositions = relativePositions;
         linearMomenta[3] = particlesPerBody;
         R.linearMomenta = linearMomenta;
         R.angularMomenta = angularMomenta;
-
-        computeInertiaTensors();
     }
 
     // Pile Init
@@ -396,10 +361,6 @@
 
         // Initialize particle positions
         var positions = [];
-        var gridBounds = {
-            min: 0,
-            max: 2
-        };
 
         var particleMass = 1.0;
         for (var i = 0; i < R.numParticles; i++) {
@@ -539,8 +500,6 @@
         R.relativePositions = relativePositions;
         R.linearMomenta = linearMomenta;
         R.angularMomenta = angularMomenta;
-
-        computeInertiaTensors();
     }
 
     // Push Init
@@ -554,10 +513,6 @@
 
         // Initialize particle positions
         var positions = [];
-        var gridBounds = {
-            min: 1,
-            max: 2
-        };
 
         var particleMass = 0.8;
         for (var i = 0; i < R.numParticles; i++) {
@@ -631,10 +586,6 @@
             throw new Error("More body particles than available particles!");
         }
 
-        var gridBounds = {
-            min: 1,
-            max: 2
-        };
         // Body positions
         var positions = [];
         for (var i = 0; i < R.numBodies; i++) {
@@ -696,11 +647,6 @@
                         }
                     }
                 }
-                //relativePositions[index] = 0;
-                //relativePositions[index + 1] = 0;
-                //relativePositions[index + 2] = 0;
-                //relativePositions[index + 3] = i;
-                //R.particlePositions[index + 3] = R.bodyParticleMass;
                 linearMomenta[4*i + 3] = particlesPerBody;
                 index += 4;
             }
@@ -708,8 +654,6 @@
         R.relativePositions = relativePositions;
         R.linearMomenta = linearMomenta;
         R.angularMomenta = angularMomenta;
-
-        computeInertiaTensors();
     }
 
     // Duck Init
@@ -723,15 +667,11 @@
 
         // Initialize particle positions
         var positions = [];
-        var gridBounds = {
-            min: 1,
-            max: 2
-        };
 
         var particleMass = 0.8;
         for (var i = 0; i < R.numParticles; i++) {
             positions.push( Math.random() * 2.0 - 1.0,
-                Math.random() * 1.0 + 0.5,
+                Math.random() * 0.5,
                 Math.random() * 2.0 - 1.0,
                 particleMass);
         }
@@ -770,12 +710,12 @@
 
         R.timeStep = 0.01;
 
-        R.particleSize = .08;
-        R.bound = 1.8;
+        R.particleSize = .1;
+        R.bound = 1.0;
         R.gridBound = R.bound * 1.1;
         R.time = 0.0;
 
-        R.k = 1500.0;
+        R.k = 1200.0;
         R.kT = 5.0;
         R.kBody = 1600.0;
         R.kBound = 2000.0;
@@ -789,29 +729,19 @@
         R.rigidBodiesEnabled = true;
         R.rigidBodiesStatic = false;
         R.bodyParticleMass = 0.3;
-        var exp = 2;
+        var exp = 0;
         if (exp % 2 != 0) {
             throw new Error("Texture side is not a power of two!");
         }
         R.numBodies = R.rigidBodiesEnabled ? Math.pow(2, exp) : 0;
         R.bodySideLength = R.rigidBodiesEnabled ? Math.sqrt(R.numBodies) : 0;
-        //var particlesPerBody = 85;
-        //var particlesPerBody = 69;
         var particlesPerBody = 0;
         if (particlesPerBody * R.numBodies > R.numParticles) {
             throw new Error("More body particles than available particles!");
         }
 
-        var gridBounds = {
-            min: 1,
-            max: 2
-        };
-
         // Body positions
         var positions = [];
-        //for (var i = 0; i < R.numBodies; i++) {
-        //    positions.push( 0.0, 0.2 + i / 4.0, 0.0, particlesPerBody * i);
-        //}
 
         // Body orientations
         var orientations = [];
@@ -852,7 +782,7 @@
                 for (var k = 0; k < pixels.length; k++) {
                     if (pixels[k] != 0) {
                         var pixelIdx = k / 4;
-                        var scale = 1.;
+                        var scale = 1.0;
                         var x = pixelIdx % R.gridSideLength;
                         x /= R.gridSideLength;
                         x *= scale;
@@ -877,7 +807,7 @@
                         particlesPerBody++;
                     }
                 }
-                positions.push( 0.0, 0.2 + i / 4.0, 0.0, particlesPerBody * i);
+                positions.push( 0.0, 1.5 + i / 4.0, 0.0, particlesPerBody * i);
                 linearMomenta[4*i + 3] = particlesPerBody;
             }
         }
@@ -886,8 +816,6 @@
         R.relativePositions = relativePositions;
         R.linearMomenta = linearMomenta;
         R.angularMomenta = angularMomenta;
-
-        computeInertiaTensors();
     }
 
     var computeInertiaTensors = function() {

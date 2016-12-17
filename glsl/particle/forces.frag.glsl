@@ -79,7 +79,8 @@ void main() {
     vec3 pos = posTexel.xyz;
     vec3 vel = velTexel.xyz;
 
-    if (false) {
+    // Just using naive for now for consistency across different machines
+    if (true) {
          // Naive loop through all particles
          // Hack because WebGL cannot compare loop index to non-constant expression
          // Maximum of 1024x1024 = 1048576 for now

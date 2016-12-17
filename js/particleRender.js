@@ -424,7 +424,7 @@
 
     var drawDebug = function() {
         // Debug
-        if (cfg.showTexture) {
+        if (cfg.debugTexture) {
             var prog = R.progDebug;
             gl.useProgram(prog.prog);
             gl.viewport(0, 0, 128 * 4, 128 * 2);

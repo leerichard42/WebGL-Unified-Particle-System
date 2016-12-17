@@ -5,20 +5,19 @@ var cfg;
 
     var Cfg = function() {
         this.pingPong = true;
-        this.showTexture = false;
+        this.debugTexture = false;
     };
 
     var init = function() {
         cfg = new Cfg();
         var gui = new dat.GUI();
-        //gui.add(cfg, 'pingPong');
-        gui.add(cfg, 'showTexture');
+        gui.add(cfg, 'debugTexture');
         var obj = {
             reset:function(){
                 R.toReset = true;;
             }
         };
-        //gui.add(obj,'reset');
+        gui.add(obj,'reset');
     };
 
     window.handle_load.push(init);

@@ -27,7 +27,6 @@ var width, height;
         stats.end();
         stats.begin();
         if (R.toReset) {
-            //console.log("resetting");
             R.setupBuffers();
             R.time = 0;
             //R.scene = (R.scene == 1 ? 3 : 1);
@@ -271,7 +270,7 @@ var width, height;
             R.model = models[0];
             R.loadAllShaderPrograms();
             //R.particleSetup();
-            //requestAnimationFrame(update);
+            requestAnimationFrame(R.update);
 
         });
         resize();
