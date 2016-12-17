@@ -15,7 +15,7 @@ This project requires a WebGL capable browser which supports the extensions `OES
 >`right click + drag` : Pan camera view<br>
 >`mouse scroll` : Zoom camera
 
-[![](img/youtube.JPG)](https://www.youtube.com/watch?v=0u_v-gD1ptA)
+[![](img/youtube.JPG)](https://www.youtube.com/watch?v=mkwqqN_J8Ag)
 
 ## Features
 
