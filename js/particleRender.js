@@ -13,7 +13,7 @@
 			return;
 		}
 
-        if (R.rigidBodiesEnabled) {
+        if (R.rigidBodiesEnabled[R.scene]) {
             // Ping-pong old body state from B to A after computing the particle locations
             computeBodyParticles(state, R.progSetup, 'B', 'B', 'A');
             if (cfg.pingPong) {
@@ -31,15 +31,7 @@
             calculateForces(state, R.progPhysics, 'A', 'A', 'RK2_B');
             updateEuler(state, 'A', 'RK2_B', 'RK2_A');
 
-            if (R.rigidBodiesEnabled && !R.rigidBodiesStatic) {
-                //calculateBodyForces(state, 'A', 'RK2_B', 'RK2_C');
-                //updateBodyEuler(state, 'A', 'RK2_C', 'B');
-                //
-                //updateGrid(state, R.progGrid, 'RK2_A', 'RK2_A');
-                //calculateForces(state, R.progPhysics, 'RK2_A', 'B', 'A');
-                //updateParticlesRK2(state, R.progRK2, 'RK2_B', 'RK2_B', 'RK2_B', 'RK2_A', 'A', 'B');
-
-
+            if (R.rigidBodiesEnabled[R.scene] && !R.rigidBodiesStatic[R.scene]) {
                 //A has pp1, pv1, bp1, bv1 - do not write
                 //rk2a has pp2, pv2, pf1, bp1, bv1
                 //rk2b has pp1, pv1, pf1, bp1, bv1
@@ -81,7 +73,7 @@
 
         //only ping pong the buffers if not using the rigid body setup shader since
         //the setup shader transfers the particle data from B to A
-        if (!R.rigidBodiesEnabled && cfg.pingPong) {
+        if (!R.rigidBodiesEnabled[R.scene] && cfg.pingPong) {
             pingPong('A', 'B');
         }
     };
@@ -92,10 +84,10 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
         gl.disable(gl.BLEND);
         //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
+        gl.viewport(0, 0, R.particleSideLength[R.scene], R.particleSideLength[R.scene]);
 
-        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
-        gl.uniform1i(prog.u_bodySide, R.bodySideLength);
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength[R.scene]);
+        gl.uniform1i(prog.u_bodySide, R.bodySideLength[R.scene]);
         gl.uniform1f(prog.u_time, R.time);
         gl.uniform1i(prog.u_scene, R.scene);
         if (R.scene == 3 || R.scene == 1) {
@@ -128,21 +120,21 @@
         // Bind position texture
         bindTextures(prog, [prog.u_posTex], [R["particlePosTex" + source]]);
         
-        gl.uniform1i(prog.u_posTexSize, R.particleSideLength);
-        gl.uniform1f(prog.u_gridSideLength, R.gridBound * 2.); // WARNING: R.bound + constant
+        gl.uniform1i(prog.u_posTexSize, R.particleSideLength[R.scene]);
+        gl.uniform1f(prog.u_gridSideLength, R.gridBound[R.scene] * 2.); // WARNING: R.bound + constant
         gl.uniform1i(prog.u_gridNumCellsPerSide, R.gridInfo.numCellsPerSide);
         gl.uniform1i(prog.u_gridTexSize, R.gridInfo.gridTexWidth);
         gl.uniform1i(prog.u_gridTexTileDimensions, R.gridInfo.gridTexTileDimensions);
         gl.uniform1f(prog.u_gridCellSize, R.gridInfo.gridCellSize);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
+        gl.bindBuffer(gl.ARRAY_BUFFER, R.indices[R.scene]);
         gl.enableVertexAttribArray(prog.a_idx);
         gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
         
         // 1 Pass
         gl.colorMask(true, false, false, false);
         gl.depthFunc(gl.LESS);
-        gl.drawArrays(gl.POINTS, 0, R.numParticles);
+        gl.drawArrays(gl.POINTS, 0, R.numParticles[R.scene]);
 
         // Set stencil values
         // 4 passes to fit up to 4 particle indices per pixel
@@ -154,17 +146,17 @@
         // 2 Pass
         gl.colorMask(false, true, false, false);
         gl.clear(gl.STENCIL_BUFFER_BIT);
-        gl.drawArrays(gl.POINTS, 0, R.numParticles);
+        gl.drawArrays(gl.POINTS, 0, R.numParticles[R.scene]);
 
         // 3 Pass
         gl.colorMask(false, false, true, false);
         gl.clear(gl.STENCIL_BUFFER_BIT);
-        gl.drawArrays(gl.POINTS, 0, R.numParticles);
+        gl.drawArrays(gl.POINTS, 0, R.numParticles[R.scene]);
         
         // 4 Pass
         gl.colorMask(false, false, false, true);
         gl.clear(gl.STENCIL_BUFFER_BIT);
-        gl.drawArrays(gl.POINTS, 0, R.numParticles);        
+        gl.drawArrays(gl.POINTS, 0, R.numParticles[R.scene]);
 
         gl.disable(gl.STENCIL_TEST);
         gl.depthFunc(gl.LESS);
@@ -181,25 +173,25 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
         gl.disable(gl.BLEND);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
+        gl.viewport(0, 0, R.particleSideLength[R.scene], R.particleSideLength[R.scene]);
 
-        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
-        gl.uniform1f(prog.u_diameter, R.particleSize);
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength[R.scene]);
+        gl.uniform1f(prog.u_diameter, R.particleSize[R.scene]);
         gl.uniform1f(prog.u_dt, R.timeStep);
-        gl.uniform1f(prog.u_bound, R.bound);
+        gl.uniform1f(prog.u_bound, R.bound[R.scene]);
 
-        gl.uniform1f(prog.u_k, R.k);
-        gl.uniform1f(prog.u_kT, R.kT);
+        gl.uniform1f(prog.u_k, R.k[R.scene]);
+        gl.uniform1f(prog.u_kT, R.kT[R.scene]);
         gl.uniform1f(prog.u_kBody, R.kBody);
-        gl.uniform1f(prog.u_kBound, R.kBound);
-        gl.uniform1f(prog.u_n, R.n);
+        gl.uniform1f(prog.u_kBound, R.kBound[R.scene]);
+        gl.uniform1f(prog.u_n, R.n[R.scene]);
         gl.uniform1f(prog.u_nBody, R.nBody);
-        gl.uniform1f(prog.u_nBound, R.nBound);
-        gl.uniform1f(prog.u_u, R.u);
-        gl.uniform1i(prog.u_scene, R.scene);
+        gl.uniform1f(prog.u_nBound, R.nBound[R.scene]);
+        gl.uniform1f(prog.u_u, R.u[R.scene]);
+        gl.uniform1i(prog.u_scene, R.scene[R.scene]);
 
         // Fill in grid uniforms
-        gl.uniform1f(prog.u_gridSideLength, R.gridBound * 2.); // WARNING: R.bound + constant
+        gl.uniform1f(prog.u_gridSideLength, R.gridBound[R.scene] * 2.); // WARNING: R.bound + constant
         gl.uniform1i(prog.u_gridNumCellsPerSide, R.gridInfo.numCellsPerSide);
         gl.uniform1i(prog.u_gridTexSize, R.gridInfo.gridTexWidth);
         gl.uniform1i(prog.u_gridTexTileDimensions, R.gridInfo.gridTexTileDimensions);
@@ -223,7 +215,7 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
         gl.disable(gl.BLEND);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
+        gl.viewport(0, 0, R.particleSideLength[R.scene], R.particleSideLength[R.scene]);
 
         gl.uniform1f(prog.u_dt, R.timeStep);
 
@@ -245,9 +237,9 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["bodyFBO" + target]);
         gl.disable(gl.BLEND);
         //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, R.bodySideLength, R.bodySideLength);
+        gl.viewport(0, 0, R.bodySideLength[R.scene], R.bodySideLength[R.scene]);
 
-        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength[R.scene]);
 
         // Program attributes and texture buffers need to be in
         // the same indices in the following arrays
@@ -269,10 +261,10 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["bodyFBO" + target]);
         gl.disable(gl.BLEND);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, R.bodySideLength, R.bodySideLength);
+        gl.viewport(0, 0, R.bodySideLength[R.scene], R.bodySideLength[R.scene]);
 
-        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
-        gl.uniform1f(prog.u_diameter, R.particleSize);
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength[R.scene]);
+        gl.uniform1f(prog.u_diameter, R.particleSize[R.scene]);
         gl.uniform1f(prog.u_dt, R.timeStep);
 
         // Program attributes and texture buffers need to be in
@@ -295,9 +287,9 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["fbo" + target]);
         gl.disable(gl.BLEND);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, R.particleSideLength, R.particleSideLength);
+        gl.viewport(0, 0, R.particleSideLength[R.scene], R.particleSideLength[R.scene]);
 
-        gl.uniform1f(prog.u_diameter, R.particleSize);
+        gl.uniform1f(prog.u_diameter, R.particleSize[R.scene]);
         gl.uniform1f(prog.u_dt, R.timeStep);
 
         // Program attributes and texture buffers need to be in
@@ -317,10 +309,10 @@
         gl.bindFramebuffer(gl.FRAMEBUFFER, R["bodyFBO" + target]);
         gl.disable(gl.BLEND);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0, 0, R.bodySideLength, R.bodySideLength);
+        gl.viewport(0, 0, R.bodySideLength[R.scene], R.bodySideLength[R.scene]);
 
-        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
-        gl.uniform1f(prog.u_diameter, R.particleSize);
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength[R.scene]);
+        gl.uniform1f(prog.u_diameter, R.particleSize[R.scene]);
         gl.uniform1f(prog.u_dt, R.timeStep);
 
         // Program attributes and texture buffers need to be in
@@ -351,14 +343,14 @@
 
         gl.uniformMatrix4fv(prog.u_cameraMat, false, state.cameraMat.elements);
 
-        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
-        gl.uniform1i(prog.u_bodySideLength, R.bodySideLength);
-        gl.uniform1f(prog.u_diameter, R.particleSize);
+        gl.uniform1i(prog.u_particleSideLength, R.particleSideLength[R.scene]);
+        gl.uniform1i(prog.u_bodySideLength, R.bodySideLength[R.scene]);
+        gl.uniform1f(prog.u_diameter, R.particleSize[R.scene]);
         gl.uniform1f(prog.u_nearPlaneHeight, R.nearPlaneHeight);
         gl.uniform3f(prog.u_cameraPos, state.cameraPos.x, state.cameraPos.y, state.cameraPos.z);
         gl.uniform1f(prog.u_fovy, R.fovy);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, R.indices);
+        gl.bindBuffer(gl.ARRAY_BUFFER, R.indices[R.scene]);
         gl.enableVertexAttribArray(prog.a_idx);
         gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
 
@@ -366,7 +358,7 @@
         bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_relPosTex],
             [R.particlePosTexA, R.particleVelTexA, R.relativePosTexA]);
 
-        gl.drawArrays(gl.POINTS, 0, R.numParticles);
+        gl.drawArrays(gl.POINTS, 0, R.numParticles[R.scene]);
     }
 
     var bindTextures = function(prog, location, tex) {
@@ -429,7 +421,7 @@
             gl.useProgram(prog.prog);
             gl.viewport(0, 0, 128 * 4, 128 * 2);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            gl.uniform1i(prog.u_particleSideLength, R.particleSideLength);
+            gl.uniform1i(prog.u_particleSideLength, R.particleSideLength[R.scene]);
             bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_forceTex, prog.u_gridTex,
                 prog.u_bodyPosTex, prog.u_bodyRotTex, prog.u_linearMomentumTex,
                 prog.u_angularMomentumTex,

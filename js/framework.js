@@ -10,16 +10,18 @@ var width, height;
     var cameraMat = new THREE.Matrix4();
 
     var render = function() {
-        camera.updateMatrixWorld();
-        camera.matrixWorldInverse.getInverse(camera.matrixWorld);
-        cameraMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        if (typeof R.gridInfo !== 'undefined'){
+            camera.updateMatrixWorld();
+            camera.matrixWorldInverse.getInverse(camera.matrixWorld);
+            cameraMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
 
-        R.particleRender({
-            models: models,
-			cameraMat: cameraMat,
-            camera: camera,
-            cameraPos: camera.getWorldPosition()
-		});
+            R.particleRender({
+                models: models,
+                cameraMat: cameraMat,
+                camera: camera,
+                cameraPos: camera.getWorldPosition()
+            });
+        }
     };
 
     R.update = function() {
@@ -27,10 +29,9 @@ var width, height;
         stats.end();
         stats.begin();
         if (R.toReset) {
-            R.setupBuffers();
             R.time = 0;
-            //R.scene = (R.scene == 1 ? 3 : 1);
             R.toReset = false;
+            R.setupBuffers();
         }
         render();
         if (!aborted) {
@@ -113,7 +114,7 @@ var width, height;
             100             // Far plane
         );
         //camera.position.set(-3, 3, -3);
-        camera.position.set(0, 2.4, 3.5);
+        camera.position.set(0, 3, 3.5);
         //camera.position.set(0, 4, 1.5);
         R.nearPlaneHeight = height / (2*Math.tan(0.5* R.fovy*Math.PI/180.0));
         //console.log(nearPlaneHeight);
@@ -122,8 +123,8 @@ var width, height;
         controls.enableDamping = true;
         controls.enableZoom = true;
         //controls.target.set(0.5, 0.5, 0.5);
-        controls.target.set(0.0, -0.1, 0.0);
-        //controls.target.set(0.0, 0.4, 0.0);
+        //controls.target.set(0.0, -0.1, 0.0);
+        controls.target.set(0.0, 0.4, 0.0);
         controls.rotateSpeed = 0.3;
         controls.zoomSpeed = 1.0;
         controls.panSpeed = 2.0;
@@ -268,8 +269,8 @@ var width, height;
             // Yes, this is a stupid and unfortunate way of starting the
             // setup, but the gltf needs to be loaded.
             R.model = models[0];
+            R.initBuffers();
             R.loadAllShaderPrograms();
-            //R.particleSetup();
             requestAnimationFrame(R.update);
 
         });
