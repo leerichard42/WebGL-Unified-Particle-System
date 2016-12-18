@@ -21,6 +21,11 @@ uniform sampler2D u_bodyTorqueTex;
 
 varying vec2 v_uv;
 
+float rand(float f){
+    vec2 co = vec2(f);
+    return clamp(fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453), 0.1, 0.7);
+}
+
 void main() {
     float num_tex = 4.0;
 
@@ -37,12 +42,17 @@ void main() {
         } else if (v_uv.x > 3./num_tex && v_uv.x < 4./num_tex) {
             vec4 grid = texture2D(u_gridTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0));
             gl_FragColor = vec4(grid.rgb * .005, 1);
+//            vec4 relPos = texture2D(u_relPosTex, vec2(v_uv.x * num_tex - 3.0, v_uv.y * 2.0));
+//            vec3 color = vec3(rand(relPos.w), rand(relPos.w+1.0), rand(relPos.w+2.0));
+//            gl_FragColor = vec4(vec3(rand(relPos.w), rand(relPos.w+1.0), rand(relPos.w+2.0)), 1.0);
         } else if (v_uv.x > 4./num_tex && v_uv.x < 5./num_tex) {
         //     vec4 depth = texture2D(u_depth0, vec2(v_uv.x * num_tex - 4.0, v_uv.y * 2.0));
         //     gl_FragColor = vec4(depth.xyz, 1);
         // } else if (v_uv.x > 5./num_tex) {
             // vec4 voxel = texture2D(u_voxel, vec2(v_uv.x * num_tex - 5.0, v_uv.y * 2.0));
             // gl_FragColor = voxel;
+//            vec4 relPos = texture2D(u_relPosTex, vec2(v_uv.x * num_tex - 4.0, v_uv.y * 2.0));
+//            gl_FragColor = vec4(vec3((relPos.w + 1.0)), 1.0);
         }
     }
 //    else {

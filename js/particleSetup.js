@@ -38,6 +38,7 @@
         R.particleVelocities = [];
         R.forces = [];
         R.indices = [];
+        R.intIndices = [];
         R.particleSize = [];
         R.bound = [];
         R.gridBound = [];
@@ -568,10 +569,15 @@
         for (var i = 0; i < R.numParticles[sceneIndex]; i++) {
             indices[i] = i;
         }
+
         var indexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+        var intIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, intIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
         R.indices[sceneIndex] = indexBuffer;
+        R.intIndices[sceneIndex] = intIndexBuffer;
 
         R.timeStep = 0.01;
 
@@ -600,7 +606,8 @@
         R.numBodies[sceneIndex] = R.rigidBodiesEnabled[sceneIndex] ? Math.pow(2, exp) : 0;
         R.bodySideLength[sceneIndex] = R.rigidBodiesEnabled[sceneIndex] ? Math.sqrt(R.numBodies[sceneIndex]) : 0;
         //var particlesPerBody = 85;
-        var particlesPerBody = 69;
+        // var particlesPerBody = 69;
+        var particlesPerBody = 0;
         if (particlesPerBody * R.numBodies[sceneIndex] > R.numParticles[sceneIndex]) {
             throw new Error("More body particles than available particles!");
         }
@@ -651,6 +658,7 @@
                             relativePositions[index + 3] = i;
                             R.particlePositions[sceneIndex][index + 3] = R.bodyParticleMass[sceneIndex];
                             index += 4;
+                            particlesPerBody++;
                         }
                     }
                 }
@@ -663,13 +671,16 @@
                             relativePositions[index + 3] = i;
                             R.particlePositions[sceneIndex][index + 3] = R.bodyParticleMass[sceneIndex];
                             index += 4;
+                            particlesPerBody++;
                         }
                     }
                 }
+                console.log(particlesPerBody);
                 linearMomenta[4*i + 3] = particlesPerBody;
-                index += 4;
+                // index += 4;
             }
         }
+        console.log(relativePositions);
         R.relativePositions[sceneIndex] = relativePositions;
         R.linearMomenta[sceneIndex] = linearMomenta;
         R.angularMomenta[sceneIndex] = angularMomenta;
@@ -1161,8 +1172,6 @@
                 p.u_cameraPos = gl.getUniformLocation(prog, 'u_cameraPos');
                 p.u_fovy = gl.getUniformLocation(prog, 'u_fovy');
                 p.u_posTex = gl.getUniformLocation(prog, 'u_posTex');
-                p.u_velTex = gl.getUniformLocation(prog, 'u_velTex');
-                p.u_forceTex = gl.getUniformLocation(prog, 'u_forceTex');
                 p.u_relPosTex = gl.getUniformLocation(prog, 'u_relPosTex');
                 p.u_bodyPosTex = gl.getUniformLocation(prog, 'u_bodyPosTex');
                 p.u_particleSideLength = gl.getUniformLocation(prog, 'u_side');

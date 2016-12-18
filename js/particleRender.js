@@ -350,13 +350,14 @@
         gl.uniform3f(prog.u_cameraPos, state.cameraPos.x, state.cameraPos.y, state.cameraPos.z);
         gl.uniform1f(prog.u_fovy, R.fovy);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, R.indices[R.scene]);
         gl.enableVertexAttribArray(prog.a_idx);
-        gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, gl.FALSE, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, R.indices[R.scene]);
+        gl.vertexAttribPointer(prog.a_idx, 1, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,  R.intIndices[R.scene]);
 
         // Bind position texture
-        bindTextures(prog, [prog.u_posTex, prog.u_velTex, prog.u_relPosTex],
-            [R.particlePosTexA, R.particleVelTexA, R.relativePosTexA]);
+        bindTextures(prog, [prog.u_posTex, prog.u_relPosTex],
+            [R.particlePosTexA, R.relativePosTexA]);
 
         gl.drawArrays(gl.POINTS, 0, R.numParticles[R.scene]);
     }
